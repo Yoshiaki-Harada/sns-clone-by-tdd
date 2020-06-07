@@ -6,6 +6,7 @@ import com.harada.domain.viewmodel.UserId
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
 import com.harada.usecase.IUserCreateUseCase
+import createRequestUser
 import createUser
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -50,7 +51,7 @@ internal class UserResourceKtTest {
         val testKodein = Kodein {
             bind<IUserCreateUseCase>() with singleton { createUseCase }
         }
-        invokeTestAppication(
+        invokeTestApplication(
             moduleFunction = {
                 userModuleWithDepth(testKodein).apply {
                     install(ContentNegotiation) { gson { setPrettyPrinting() } }
@@ -66,9 +67,83 @@ internal class UserResourceKtTest {
             }
         )
     }
+
+
+    @Test
+    fun `不正な日付フォーマットの誕生日のUserを登録するとStatus Code 400が返却される`() {
+        every {
+            createUseCase.execute(any<User>())
+        } returns UserId(UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"))
+
+        val testKodein = Kodein {
+            bind<IUserCreateUseCase>() with singleton { createUseCase }
+        }
+        invokeTestApplication(
+            moduleFunction = {
+                userModuleWithDepth(testKodein).apply {
+                    install(ContentNegotiation) { gson { setPrettyPrinting() } }
+                }
+            },
+            path = "/users",
+            method = HttpMethod.Post,
+            body = gson.toJson(createRequestUser(birthday = "1990-")),
+            contentType = ContentType.Application.Json,
+            assert = {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+            }
+        )
+    }
+    @Test
+    fun `不正なフォーマットのUserを登録するとStatus Code 400が返却される`() {
+        every {
+            createUseCase.execute(any<User>())
+        } returns UserId(UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"))
+
+        val testKodein = Kodein {
+            bind<IUserCreateUseCase>() with singleton { createUseCase }
+        }
+        invokeTestApplication(
+            moduleFunction = {
+                userModuleWithDepth(testKodein).apply {
+                    install(ContentNegotiation) { gson { setPrettyPrinting() } }
+                }
+            },
+            path = "/users",
+            method = HttpMethod.Post,
+            body = "{\"nam\" : \"Taro\"",
+            contentType = ContentType.Application.Json,
+            assert = {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+            }
+        )
+    }
+    @Test
+    fun `フィールドが揃っていないUserを登録するとStatus Code 400が返却される`() {
+        every {
+            createUseCase.execute(any<User>())
+        } returns UserId(UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"))
+
+        val testKodein = Kodein {
+            bind<IUserCreateUseCase>() with singleton { createUseCase }
+        }
+        invokeTestApplication(
+            moduleFunction = {
+                userModuleWithDepth(testKodein).apply {
+                    install(ContentNegotiation) { gson { setPrettyPrinting() } }
+                }
+            },
+            path = "/users",
+            method = HttpMethod.Post,
+            body = "{\"name\" : \"Taro\"}",
+            contentType = ContentType.Application.Json,
+            assert = {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+            }
+        )
+    }
 }
 
-fun invokeTestAppication(
+fun invokeTestApplication(
     moduleFunction: Application.() -> Unit,
     path: String,
     method: HttpMethod,
