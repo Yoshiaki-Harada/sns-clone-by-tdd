@@ -7,6 +7,7 @@ import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
 import com.harada.usecase.IUserCreateUseCase
 import createUser
+import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.gson.gson
@@ -14,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
@@ -30,6 +32,10 @@ import org.kodein.di.generic.singleton
 import java.util.*
 
 internal class UserResourceKtTest {
+    private val gson = GsonBuilder().setPrettyPrinting().create()
+
+    val createUseCase = mockk<IUserCreateUseCase>()
+
     @BeforeAll
     fun init() {
         clearMocks(createUseCase)
@@ -37,10 +43,6 @@ internal class UserResourceKtTest {
 
     @Test
     fun `userを登録することができる`() {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-
-        val createUseCase = mockk<IUserCreateUseCase>()
-
         every {
             createUseCase.execute(any<User>())
         } returns UserId(UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"))
@@ -48,27 +50,38 @@ internal class UserResourceKtTest {
         val testKodein = Kodein {
             bind<IUserCreateUseCase>() with singleton { createUseCase }
         }
-
-        withTestApplication({
-            userModuleWithDepth(testKodein).apply {
-                install(ContentNegotiation) {
-                    gson {
-                        setPrettyPrinting()
-                    }
+        invokeTestAppication(
+            moduleFunction = {
+                userModuleWithDepth(testKodein).apply {
+                    install(ContentNegotiation) { gson { setPrettyPrinting() } }
                 }
-            }
-        }) {
-            with(handleRequest(HttpMethod.Post, "/users") {
-                addHeader(
-                    HttpHeaders.ContentType, "${ContentType.Application.Json}"
-                )
-                setBody(
-                    gson.toJson(RequestUser("Tanaka Taro", "test@gmail.com", "1990-01-01"))
-                )
-            }) {
+            },
+            path = "/users",
+            method = HttpMethod.Post,
+            body = gson.toJson(RequestUser("Tanaka Taro", "test@gmail.com", "1990-01-01")),
+            contentType = ContentType.Application.Json,
+            assert = {
                 verify { createUseCase.execute(createUser()) }
                 assertEquals(HttpStatusCode.OK, response.status())
             }
-        }
+        )
+    }
+}
+
+fun invokeTestAppication(
+    moduleFunction: Application.() -> Unit,
+    path: String,
+    method: HttpMethod,
+    body: String?,
+    contentType: ContentType,
+    assert: TestApplicationCall.() -> Unit
+) = withTestApplication(moduleFunction) {
+    with(handleRequest(method, path) {
+        addHeader(
+            HttpHeaders.ContentType, "$contentType"
+        )
+        if (body != null) setBody(body)
+    }) {
+        assert.invoke(this)
     }
 }
