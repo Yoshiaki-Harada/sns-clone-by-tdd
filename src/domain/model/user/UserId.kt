@@ -1,4 +1,4 @@
-package com.harada.domain.viewmodel
+package com.harada.domain.model.user
 
 import java.util.*
 

@@ -1,8 +1,7 @@
 package rest
 
 import com.google.gson.GsonBuilder
-import com.harada.domain.model.user.User
-import com.harada.domain.viewmodel.UserId
+import com.harada.domain.model.user.UserId
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
 import com.harada.usecase.IUserCreateUseCase
@@ -38,7 +37,11 @@ class UserResourceKtTest {
         val gson = GsonBuilder().setPrettyPrinting().create()
 
         val createUseCase = mockk<IUserCreateUseCase>() {
-            every { this@mockk.execute(any()) } returns UserId(UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"))
+            every { this@mockk.execute(any()) } returns UserId(
+                UUID.fromString(
+                    "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"
+                )
+            )
         }
 
         val testKodein = Kodein {
