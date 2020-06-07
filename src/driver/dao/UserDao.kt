@@ -20,16 +20,15 @@ object Users : UUIDTable() {
 
 class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<UserDao>(Users) {
-        fun create(entity: UserEntity) = UserDao.new {
+        fun create(entity: UserEntity) =
             UserDao.new(entity.id) {
-                this.name = entity.name
-                this.mail = entity.mail
-                this.birthday = entity.birthday
-                this.createdAt = entity.createdAt
-                this.updatedAt = entity.updatedAt
-            }
-        }.id.value
-    }
+                name = entity.name
+                mail = entity.mail
+                birthday = entity.birthday
+                createdAt = entity.createdAt
+                updatedAt = entity.updatedAt
+            }.id.value
+        }
 
     var name by Users.name
     var mail by Users.mail

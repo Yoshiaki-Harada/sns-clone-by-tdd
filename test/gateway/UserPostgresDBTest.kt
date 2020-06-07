@@ -16,12 +16,12 @@ internal class UserPostgresDBTest {
             every { this@mockk.create(any()) } returns createUserId().value
         }
         mockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
-        every { transaction(statement = captureLambda<Transaction.() -> Any>()) } answers { call ->
+        every { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
-        val db = UserPostgresDB(dao)
+        val db = UserPostgresDB(dao, mockk())
         db.save(createUser())
-        verify { transaction(statement = captureLambda<Transaction.() -> Any>()) }
+        verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
         verify { dao.create(any()) }
         unmockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
     }
