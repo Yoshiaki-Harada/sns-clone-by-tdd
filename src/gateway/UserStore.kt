@@ -1,4 +1,4 @@
-package com.harada.port
+package com.harada.gateway
 
 import com.harada.domain.model.user.User
 import com.harada.domain.model.user.UserId
