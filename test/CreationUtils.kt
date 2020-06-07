@@ -2,8 +2,11 @@ import com.harada.domain.model.user.Mail
 import com.harada.domain.model.user.User
 import com.harada.domain.model.user.UserId
 import com.harada.domain.model.user.UserName
+import com.harada.driver.entity.UserEntity
 import com.harada.rest.RequestUser
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 val sdFormat = SimpleDateFormat("yyyy-MM-dd")
@@ -27,4 +30,20 @@ fun createRequestUser(
     birthday: String = "1990-01-01"
 ) = RequestUser(
     name, mail, birthday
+)
+
+fun createUserEntity(
+    id: UUID = createUserId().value,
+    name: String = "Tanaka Taro",
+    mail: String = "test@gmail.com",
+    birthday: LocalDate = LocalDate.of(1990, 1, 1),
+    createdAt: LocalDateTime = LocalDateTime.now(),
+    updateAt: LocalDateTime = LocalDateTime.now()
+) = UserEntity(
+    id = id,
+    name = name,
+    mail = mail,
+    birthday = birthday,
+    createdAt = createdAt,
+    updatedAt = updateAt
 )
