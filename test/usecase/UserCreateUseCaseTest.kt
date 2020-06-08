@@ -1,6 +1,6 @@
 package usecase
 
-import com.harada.gateway.UserStore
+import com.harada.gateway.UserWriteStore
 import com.harada.usecase.InvalidMailException
 import com.harada.usecase.UserCreateUseCase
 import createUser
@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 internal class UserCreateUseCaseTest {
     @Test
     fun `ユーザを登録することができる`() {
-        val store = mockk<UserStore>() {
+        val store = mockk<UserWriteStore>() {
             every { this@mockk.save(any()) } returns createUserId()
         }
         val useCase = UserCreateUseCase(store)
@@ -26,7 +26,7 @@ internal class UserCreateUseCaseTest {
 
     @Test
     fun `不正なメールアドレスのユーザは登録することができない`() {
-        val store = mockk<UserStore>() {
+        val store = mockk<UserWriteStore>() {
             every { this@mockk.save(any()) } returns createUserId()
         }
         val useCase = UserCreateUseCase(store)

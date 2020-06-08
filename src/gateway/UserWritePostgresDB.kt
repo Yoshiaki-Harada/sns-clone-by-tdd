@@ -11,7 +11,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
-class UserPostgresDB(val dao: UserDao.Companion, val db: Database) : UserStore {
+class UserWritePostgresDB(val dao: UserDao.Companion, val db: Database) : UserWriteStore {
     override fun save(user: User): UserId = transaction(db = db) {
         dao.create(
             UserEntity(

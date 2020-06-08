@@ -1,8 +1,8 @@
 package com.harada
 
 import com.harada.driver.dao.UserDao
-import com.harada.gateway.UserPostgresDB
-import com.harada.gateway.UserStore
+import com.harada.gateway.UserWritePostgresDB
+import com.harada.gateway.UserWriteStore
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.UserCreateUseCase
 import org.jetbrains.exposed.sql.Database
@@ -18,7 +18,7 @@ object Injector {
     }
 
     val gatewayModule = Kodein.Module("gateway") {
-        bind<UserStore>() with singleton { UserPostgresDB(instance(),instance()) }
+        bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(),instance()) }
 
     }
 

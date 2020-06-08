@@ -1,7 +1,7 @@
 package gateway
 
 import com.harada.driver.dao.UserDao
-import com.harada.gateway.UserPostgresDB
+import com.harada.gateway.UserWritePostgresDB
 import createUser
 import createUserId
 import io.mockk.*
@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Test
 
-internal class UserPostgresDBTest {
+internal class UserWritePostgresDBTest {
     @Test
     fun `UserをDBに保存する`() {
         val dao = mockk<UserDao.Companion>(relaxed = true) {
@@ -19,7 +19,7 @@ internal class UserPostgresDBTest {
         every { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
-        val db = UserPostgresDB(dao, mockk())
+        val db = UserWritePostgresDB(dao, mockk())
         db.save(createUser())
         verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
         verify { dao.create(any()) }
