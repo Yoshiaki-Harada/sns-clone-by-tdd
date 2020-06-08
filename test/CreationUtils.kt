@@ -1,8 +1,6 @@
-import com.harada.domain.model.user.Mail
-import com.harada.domain.model.user.User
-import com.harada.domain.model.user.UserId
-import com.harada.domain.model.user.UserName
+import com.harada.domain.model.user.*
 import com.harada.driver.entity.UserEntity
+import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -20,6 +18,16 @@ fun createUser(
     sdFormat.parse(birthday)
 )
 
+fun createUpdateUser(
+    name: String? = null,
+    mail: String? = null,
+    birthday: String? = null
+) = UpdateUser(
+    name?.let { UserName(it) },
+    mail?.let { Mail(mail) },
+    birthday?.let { sdFormat.parse(birthday) }
+)
+
 fun createUserId(
     id: UUID = UUID.fromString("A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11")
 ) = UserId(id)
@@ -29,6 +37,14 @@ fun createRequestUser(
     mail: String = "test@gmail.com",
     birthday: String = "1990-01-01"
 ) = RequestUser(
+    name, mail, birthday
+)
+
+fun createRequestUpdateUser(
+    name: String? = null,
+    mail: String? = null,
+    birthday: String? = null
+) = RequestUpdateUser(
     name, mail, birthday
 )
 
