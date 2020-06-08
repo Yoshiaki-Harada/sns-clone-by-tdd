@@ -1,6 +1,7 @@
 package com.harada.driver.dao
 
 import com.harada.driver.entity.UserEntity
+import com.harada.driver.entity.UserUpdateEntity
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -28,7 +29,22 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
                 createdAt = entity.createdAt
                 updatedAt = entity.updatedAt
             }.id.value
+
+        fun update(entity: UserUpdateEntity) {
+            UserDao.findById(entity.id)?.let { userDao ->
+                entity.name?.let {
+                    userDao.name = it
+                }
+                entity.mail?.let {
+                    userDao.mail = it
+                }
+                entity.birthday?.let {
+                    userDao.birthday = it
+                }
+                userDao.updatedAt = entity.updatedAt
+            }
         }
+    }
 
     var name by Users.name
     var mail by Users.mail

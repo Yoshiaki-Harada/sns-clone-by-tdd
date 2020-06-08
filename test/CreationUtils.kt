@@ -1,5 +1,6 @@
 import com.harada.domain.model.user.*
 import com.harada.driver.entity.UserEntity
+import com.harada.driver.entity.UserUpdateEntity
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
 import java.text.SimpleDateFormat
@@ -61,5 +62,19 @@ fun createUserEntity(
     mail = mail,
     birthday = birthday,
     createdAt = createdAt,
+    updatedAt = updateAt
+)
+
+fun createUpdateUserEntity(
+    id: UUID = createUserId().value,
+    name: String? = null,
+    mail: String? = null,
+    birthday: LocalDate? = null,
+    updateAt: LocalDateTime = LocalDateTime.of(2020, 1, 1, 1, 10)
+) = UserUpdateEntity(
+    id = id,
+    name = name,
+    mail = mail,
+    birthday = birthday,
     updatedAt = updateAt
 )
