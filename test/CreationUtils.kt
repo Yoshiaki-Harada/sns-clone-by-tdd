@@ -3,6 +3,8 @@ import com.harada.driver.entity.UserEntity
 import com.harada.driver.entity.UserUpdateEntity
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
+import com.harada.viewmodel.UserInfo
+import com.harada.viewmodel.UsersInfo
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -78,3 +80,27 @@ fun createUpdateUserEntity(
     birthday = birthday,
     updatedAt = updateAt
 )
+
+fun createUserInfo(
+    id: UUID = createUserId().value,
+    name: String = createUser().name.toString(),
+    mail: String = createUser().name.toString(),
+    birthday: Date = createUser().birthday
+) = UserInfo(
+    id = id.toString(),
+    name = name,
+    mail = mail,
+    birthday = birthday.toString()
+)
+
+fun createUsersInfo(
+    userInfoList: List<UserInfo> = listOf(
+        createUserInfo(),
+        createUserInfo(
+            id = UUID.fromString("ebda0d03-71e9-43bc-934b-b335f5708c7e"),
+            name = "吉田 次郎",
+            mail = "yoshida@gmail.com",
+            birthday = sdFormat.parse("1995-01-01")
+        )
+    )
+) = UsersInfo(userInfoList)

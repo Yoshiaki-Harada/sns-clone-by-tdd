@@ -6,11 +6,13 @@ import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
+import com.harada.usecase.IUsersGetUseCase
 import createRequestUpdateUser
 import createRequestUser
 import createUpdateUser
 import createUser
 import createUserId
+import createUsersInfo
 import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
@@ -172,6 +174,44 @@ class UserResourceKtTest {
                 },
                 path = "/users/$userId",
                 method = HttpMethod.Put,
+                body = body,
+                contentType = ContentType.Application.Json,
+                assert = assert
+            )
+        }
+    }
+
+    @Nested
+    inner class GetUser {
+        val useCase = mockk<IUsersGetUseCase>() {
+            every { this@mockk.execute() } returns createUsersInfo()
+        }
+        val testKodein = Kodein {
+            bind<IUsersGetUseCase>() with singleton { useCase }
+        }
+
+        @Test
+        fun `ユーザー一覧を取得できる`() {
+            invokeWithTestGetUsersApplication(
+                testKodein = testKodein,
+                assert = {
+                    verify { useCase.execute() }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        fun invokeWithTestGetUsersApplication(
+            testKodein: Kodein,
+            body: String? = null,
+            assert: TestApplicationCall.() -> Unit
+        ) {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    userModuleWithDepth(testKodein)
+                },
+                path = "/users",
+                method = HttpMethod.Get,
                 body = body,
                 contentType = ContentType.Application.Json,
                 assert = assert

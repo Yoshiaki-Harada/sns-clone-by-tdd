@@ -16,6 +16,7 @@ import io.ktor.locations.Locations
 import io.ktor.locations.put
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
@@ -54,6 +55,9 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
             val userId =
                 createUseCase.execute(User(UserName(json.name), Mail(json.mail), parseDate(json.birthday)))
             call.respond(ResponseUserId(userId.value.toString()))
+        }
+        get("/users") {
+
         }
         @Location("/users/{id}")
         data class PutUserLocation(val id: String)

@@ -34,6 +34,7 @@ object Injector {
             dataSource.user = "developer"
             dataSource.password = "developer"
             dataSource.setURL("jdbc:postgresql://localhost:5432/sns_db")
+            dataSource.loggerLevel = "DEBUG"
             Database.connect(dataSource)
         }
     }
