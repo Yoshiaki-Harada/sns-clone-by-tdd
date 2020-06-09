@@ -4,7 +4,9 @@ import com.harada.driver.dao.UserDao
 import com.harada.gateway.UserWritePostgresDB
 import com.harada.gateway.UserWriteStore
 import com.harada.usecase.IUserCreateUseCase
+import com.harada.usecase.IUserUpdateUseCase
 import com.harada.usecase.UserCreateUseCase
+import com.harada.usecase.UserUpdateUseCase
 import org.jetbrains.exposed.sql.Database
 import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
@@ -15,11 +17,11 @@ import org.postgresql.ds.PGSimpleDataSource
 object Injector {
     val useCaseModule = Kodein.Module("useCase") {
         bind<IUserCreateUseCase>() with singleton { UserCreateUseCase(instance()) }
+        bind<IUserUpdateUseCase>() with singleton { UserUpdateUseCase(instance()) }
     }
 
     val gatewayModule = Kodein.Module("gateway") {
-        bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(),instance()) }
-
+        bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(), instance()) }
     }
 
     val driverModule = Kodein.Module("driver") {

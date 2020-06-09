@@ -7,6 +7,7 @@ import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
 import io.ktor.application.Application
 import io.ktor.application.call
+import io.ktor.application.featureOrNull
 import io.ktor.application.install
 import io.ktor.features.StatusPages
 import io.ktor.http.HttpStatusCode
@@ -29,9 +30,8 @@ fun Application.userModule() {
 }
 
 fun Application.userModuleWithDepth(kodein: Kodein) {
-    install(Locations) {
-
-    }
+    // テストの際にここでinstallしないとエラーを起こすため
+    if (this.featureOrNull(Locations) == null) install(Locations)
     install(StatusPages) {
         exception<ParseException> { cause ->
             val errorMessage = cause.message ?: "Unknown error"

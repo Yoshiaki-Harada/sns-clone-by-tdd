@@ -8,6 +8,8 @@ import createUserId
 import io.mockk.*
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class UserWritePostgresDBTest {
@@ -15,27 +17,33 @@ internal class UserWritePostgresDBTest {
         every { this@mockk.create(any()) } returns createUserId().value
     }
 
-    @Test
-    fun `ユーザー情報をDBに保存する`() {
+    @BeforeEach
+    fun setUp() {
         mockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
         every { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
-        val db = UserWritePostgresDB(dao, mockk())
-        db.save(createUser())
-        verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
-        verify { dao.create(any()) }
+    }
+
+    @AfterEach
+    fun tearDown() {
         unmockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
     }
 
     @Test
+    fun `ユーザー情報をDBに保存する`() {
+        val db = UserWritePostgresDB(dao, mockk())
+        db.save(createUser())
+        verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
+        verify { dao.create(any()) }
+    }
+
+    @Test
     fun `databaseのユーザー情報を更新する`() {
-        mockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
         every { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
         val db = UserWritePostgresDB(dao, mockk())
-
         db.update(createUserId(), createUpdateUser(mail = "test@gmail.com"))
         verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
         verify { dao.update(any()) }

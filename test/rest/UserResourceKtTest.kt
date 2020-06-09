@@ -36,6 +36,7 @@ class UserResourceKtTest {
 
     val gson = GsonBuilder().setPrettyPrinting().create()
 
+
     @Nested
     inner class CreateUser {
 
@@ -103,9 +104,7 @@ class UserResourceKtTest {
         ) {
             invokeWithTestApplication(
                 moduleFunction = {
-                    userModuleWithDepth(testKodein).apply {
-                        install(ContentNegotiation) { gson { setPrettyPrinting() } }
-                    }
+                    userModuleWithDepth(testKodein)
                 },
                 path = "/users",
                 method = HttpMethod.Post,
@@ -169,9 +168,7 @@ class UserResourceKtTest {
         ) {
             invokeWithTestApplication(
                 moduleFunction = {
-                    userModuleWithDepth(testKodein).apply {
-                        install(ContentNegotiation) { gson { setPrettyPrinting() } }
-                    }
+                    userModuleWithDepth(testKodein)
                 },
                 path = "/users/$userId",
                 method = HttpMethod.Put,
@@ -191,6 +188,7 @@ fun invokeWithTestApplication(
     contentType: ContentType,
     assert: TestApplicationCall.() -> Unit
 ) = withTestApplication(moduleFunction) {
+    application.install(ContentNegotiation) { gson { setPrettyPrinting() } }
     with(handleRequest(method, path) {
         addHeader(
             HttpHeaders.ContentType, "$contentType"
