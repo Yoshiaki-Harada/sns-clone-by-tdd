@@ -8,6 +8,8 @@ import com.harada.viewmodel.UsersInfo
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 
 val sdFormat = SimpleDateFormat("yyyy-MM-dd")
@@ -84,13 +86,17 @@ fun createUpdateUserEntity(
 fun createUserInfo(
     id: UUID = createUserId().value,
     name: String = createUser().name.toString(),
-    mail: String = createUser().name.toString(),
-    birthday: Date = createUser().birthday
+    mail: String = createUser().mail.toString(),
+    birthday: Date = createUser().birthday,
+    createdAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC")),
+    updatedAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC"))
 ) = UserInfo(
     id = id.toString(),
     name = name,
     mail = mail,
-    birthday = birthday.toString()
+    birthday = sdFormat.format(birthday),
+    createdAt = createdAt,
+    updatedAt = updatedAt
 )
 
 fun createUsersInfo(

@@ -3,6 +3,7 @@ package com.harada.rest
 import com.google.gson.JsonSyntaxException
 import com.harada.Injector
 import com.harada.domain.model.user.*
+import com.harada.port.UserQueryService
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
 import io.ktor.application.Application
@@ -13,10 +14,10 @@ import io.ktor.features.StatusPages
 import io.ktor.http.HttpStatusCode
 import io.ktor.locations.Location
 import io.ktor.locations.Locations
+import io.ktor.locations.get
 import io.ktor.locations.put
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
@@ -49,6 +50,7 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
     }
     val createUseCase by kodein.instance<IUserCreateUseCase>()
     val updateUseCase by kodein.instance<IUserUpdateUseCase>()
+    val userQuery by kodein.instance<UserQueryService>()
     routing {
         post("/users") {
             val json = call.receive<RequestUser>()
@@ -56,8 +58,25 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
                 createUseCase.execute(User(UserName(json.name), Mail(json.mail), parseDate(json.birthday)))
             call.respond(ResponseUserId(userId.value.toString()))
         }
-        get("/users") {
+        @Location("/users")
+        data class GetUsersLocation(val name: String? = null, val old_from: Int? = null, val old_to: Int? = null)
+        get<GetUsersLocation> { paramas ->
+            val name = paramas.name
+            val oldFilter = if (paramas.old_from == null && paramas.old_to == null) {
+                null
+            } else {
+                val from = paramas.old_from ?: 0
+                val to = paramas.old_to ?: 150
+                OldFilter(from, to)
+            }
+            val users = userQuery.get(
+                UserFilter(
+                    name?.let { NameFilter(it) },
+                    oldFilter
+                )
+            )
 
+            call.respond(users)
         }
         @Location("/users/{id}")
         data class PutUserLocation(val id: String)

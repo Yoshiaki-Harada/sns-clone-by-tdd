@@ -6,8 +6,11 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.`java-time`.date
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.and
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -44,6 +47,31 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
                 userDao.updatedAt = entity.updatedAt
             }
         }
+
+        fun get(filter: SqlUserFilter): List<UserDao> {
+            val cond = when {
+                filter.nameFilter != null && filter.oldFilter != null -> {
+                    Op.build {
+                        Users.name like filter.nameFilter and Users.birthday.between(
+                            filter.oldFilter.from,
+                            filter.oldFilter.to
+                        )
+                    }
+                }
+                filter.nameFilter != null -> {
+                    Op.build {
+                        Users.name like "%${ filter.nameFilter }%"
+                    }
+                }
+                filter.oldFilter != null -> {
+                    Op.build {
+                        Users.birthday.between(filter.oldFilter.from, filter.oldFilter.to)
+                    }
+                }
+                else -> null
+            }
+            return cond?.let { UserDao.find(it).toList() } ?: all().toList()
+        }
     }
 
     var name by Users.name
@@ -52,3 +80,7 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var createdAt by Users.createdAt
     var updatedAt by Users.updatedAt
 }
+
+data class SqlUserFilter(val nameFilter: String? = null, val oldFilter: SqlOldFilter? = null)
+
+data class SqlOldFilter(val from: LocalDate, val to: LocalDate)

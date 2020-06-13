@@ -1,11 +1,10 @@
 package usecase
 
-import com.harada.gateway.UserReadStore
-import com.harada.gateway.UserWriteStore
+import com.harada.port.UserQueryService
+import com.harada.port.UserWriteStore
 import com.harada.usecase.InvalidMailException
 import com.harada.usecase.UserCreateUseCase
 import com.harada.usecase.UserUpdateUseCase
-import com.harada.usecase.UsersGetUseCase
 import createUpdateUser
 import createUser
 import createUserId
@@ -21,8 +20,8 @@ internal class UserUseCaseTest {
         every { this@mockk.update(any(), any()) } just Runs
     }
 
-    val readStore = mockk<UserReadStore>() {
-        every { this@mockk.get() } returns createUsersInfo()
+    val readStore = mockk<UserQueryService>() {
+        every { this@mockk.get(any()) } returns createUsersInfo()
     }
 
     @Test
@@ -73,13 +72,5 @@ internal class UserUseCaseTest {
                 createUpdateUser(mail = "wrong-address")
             )
         }
-    }
-
-    @Test
-    fun `ユーザー一覧を取得することができる`() {
-        val useCase = UsersGetUseCase(this.readStore)
-        val usersInfo = useCase.execute()
-        verify { readStore.get() }
-        assertEquals(createUsersInfo(), usersInfo)
     }
 }

@@ -1,12 +1,15 @@
 package rest
 
 import com.google.gson.GsonBuilder
+import com.harada.domain.model.user.NameFilter
+import com.harada.domain.model.user.OldFilter
+import com.harada.domain.model.user.UserFilter
 import com.harada.domain.model.user.UserId
+import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
-import com.harada.usecase.IUsersGetUseCase
 import createRequestUpdateUser
 import createRequestUser
 import createUpdateUser
@@ -34,7 +37,7 @@ import org.kodein.di.generic.bind
 import org.kodein.di.generic.singleton
 import java.util.*
 
-class UserResourceKtTest {
+class UserResourceTest {
 
     val gson = GsonBuilder().setPrettyPrinting().create()
 
@@ -183,11 +186,11 @@ class UserResourceKtTest {
 
     @Nested
     inner class GetUser {
-        val useCase = mockk<IUsersGetUseCase>() {
-            every { this@mockk.execute() } returns createUsersInfo()
+        val query = mockk<UserQueryService>() {
+            every { this@mockk.get(any()) } returns createUsersInfo()
         }
         val testKodein = Kodein {
-            bind<IUsersGetUseCase>() with singleton { useCase }
+            bind<UserQueryService>() with singleton { query }
         }
 
         @Test
@@ -195,7 +198,31 @@ class UserResourceKtTest {
             invokeWithTestGetUsersApplication(
                 testKodein = testKodein,
                 assert = {
-                    verify { useCase.execute() }
+                    verify { query.get(UserFilter()) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `名前でフィルターしたユーザー一覧を取得できる`() {
+            invokeWithTestGetUsersApplication(
+                testKodein = testKodein,
+                path = "/users?name=Tanaka",
+                assert = {
+                    verify { query.get(UserFilter(name = NameFilter("Tanaka"))) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `年齢でフィルターしたユーザー一覧を取得できる`() {
+            invokeWithTestGetUsersApplication(
+                testKodein = testKodein,
+                path = "/users?old_from=20&old_to=25",
+                assert = {
+                    verify { query.get(UserFilter(old = OldFilter(20, 25))) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
@@ -203,6 +230,7 @@ class UserResourceKtTest {
 
         fun invokeWithTestGetUsersApplication(
             testKodein: Kodein,
+            path: String = "/users",
             body: String? = null,
             assert: TestApplicationCall.() -> Unit
         ) {
@@ -210,7 +238,7 @@ class UserResourceKtTest {
                 moduleFunction = {
                     userModuleWithDepth(testKodein)
                 },
-                path = "/users",
+                path = path,
                 method = HttpMethod.Get,
                 body = body,
                 contentType = ContentType.Application.Json,
