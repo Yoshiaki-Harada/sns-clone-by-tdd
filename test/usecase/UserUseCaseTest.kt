@@ -1,5 +1,6 @@
 package usecase
 
+import com.harada.domain.model.user.UserFilter
 import com.harada.port.UserQueryService
 import com.harada.port.UserWriteStore
 import com.harada.usecase.InvalidMailException
@@ -18,10 +19,6 @@ internal class UserUseCaseTest {
     val writeStore = mockk<UserWriteStore>() {
         every { this@mockk.save(any()) } returns createUserId()
         every { this@mockk.update(any(), any()) } just Runs
-    }
-
-    val readStore = mockk<UserQueryService>() {
-        every { this@mockk.get(any()) } returns createUsersInfo()
     }
 
     @Test

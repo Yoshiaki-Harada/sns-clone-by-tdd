@@ -1,6 +1,7 @@
 package com.harada.gateway
 
 import com.harada.domain.model.user.UserFilter
+import com.harada.domain.model.user.UserId
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
@@ -33,6 +34,15 @@ class UserQueryPostgresDB(private val dao: UserDao.Companion, private val db: Da
 
         return@transaction UsersInfo(users.map { it.toInfo() })
     }
+
+    override fun get(id: UserId) = transaction(
+        db = db,
+        transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+        repetitionAttempts = 2
+    ) {
+        dao.findById(id.value)?.toInfo() ?: throw UserNotFoundException(userId = id.value)
+    }
+
 }
 
 fun UserDao.toInfo() = UserInfo(
@@ -40,6 +50,6 @@ fun UserDao.toInfo() = UserInfo(
     name = name,
     mail = mail,
     birthday = birthday.toString(),
-    createdAt = ZonedDateTime.of(createdAt, ZoneId.of("UTC")),
-    updatedAt = ZonedDateTime.of(updatedAt, ZoneId.of("UTC"))
+    createdAt = ZonedDateTime.of(createdAt, ZoneId.of("UTC")).toString(),
+    updatedAt = ZonedDateTime.of(updatedAt, ZoneId.of("UTC")).toString()
 )

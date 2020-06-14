@@ -3,6 +3,7 @@ package com.harada.rest
 import com.google.gson.JsonSyntaxException
 import com.harada.Injector
 import com.harada.domain.model.user.*
+import com.harada.gateway.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
@@ -47,6 +48,10 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
             val errorMessage = cause.message ?: "Unknown error"
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
         }
+        exception<UserNotFoundException> { cause ->
+            val errorMessage = cause.message ?: "Unknown error"
+            call.respond(HttpStatusCode.NotFound, ErrorResponse(errorMessage))
+        }
     }
     val createUseCase by kodein.instance<IUserCreateUseCase>()
     val updateUseCase by kodein.instance<IUserUpdateUseCase>()
@@ -57,6 +62,12 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
             val userId =
                 createUseCase.execute(User(UserName(json.name), Mail(json.mail), parseDate(json.birthday)))
             call.respond(ResponseUserId(userId.value.toString()))
+        }
+        @Location("/users/{id}")
+        data class GetUserLocationById(val id: String)
+        get<GetUserLocationById> { params ->
+            val userId = UUID.fromString(params.id)
+            call.respond(userQuery.get(UserId(userId)))
         }
         @Location("/users")
         data class GetUsersLocation(val name: String? = null, val old_from: Int? = null, val old_to: Int? = null)
@@ -75,7 +86,6 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
                     oldFilter
                 )
             )
-
             call.respond(users)
         }
         @Location("/users/{id}")

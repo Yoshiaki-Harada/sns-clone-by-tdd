@@ -5,6 +5,7 @@ import com.harada.domain.model.user.NameFilter
 import com.harada.domain.model.user.OldFilter
 import com.harada.domain.model.user.UserFilter
 import com.harada.domain.model.user.UserId
+import com.harada.gateway.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
@@ -15,6 +16,7 @@ import createRequestUser
 import createUpdateUser
 import createUser
 import createUserId
+import createUserInfo
 import createUsersInfo
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -187,7 +189,8 @@ class UserResourceTest {
     @Nested
     inner class GetUser {
         val query = mockk<UserQueryService>() {
-            every { this@mockk.get(any()) } returns createUsersInfo()
+            every { this@mockk.get(any<UserFilter>()) } returns createUsersInfo()
+            every { this@mockk.get(any<UserId>()) } returns createUserInfo()
         }
         val testKodein = Kodein {
             bind<UserQueryService>() with singleton { query }
@@ -224,6 +227,38 @@ class UserResourceTest {
                 assert = {
                     verify { query.get(UserFilter(old = OldFilter(20, 25))) }
                     assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `idを指定してユーザを取得することができる`() {
+            invokeWithTestGetUsersApplication(
+                testKodein = testKodein,
+                path = "/users/${createUserId().value}",
+                assert = {
+                    verify { query.get(createUserId()) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `指定したidのユーザが存在しないとき404を返す`() {
+
+            val query = mockk<UserQueryService>() {
+                every { this@mockk.get(any<UserId>()) } throws UserNotFoundException(createUserId().value)
+            }
+
+            val testKodein = Kodein {
+                bind<UserQueryService>() with singleton { query }
+            }
+            invokeWithTestGetUsersApplication(
+                testKodein = testKodein,
+                path = "/users/${createUserId().value}",
+                assert = {
+                    verify { query.get(createUserId()) }
+                    assertEquals(HttpStatusCode.NotFound, response.status())
                 }
             )
         }

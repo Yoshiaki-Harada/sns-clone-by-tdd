@@ -6,8 +6,10 @@ import com.harada.domain.model.user.UserFilter
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
+import com.harada.gateway.UserNotFoundException
 import com.harada.gateway.UserQueryPostgresDB
 import com.harada.viewmodel.UsersInfo
+import createUserId
 import createUserInfo
 import io.mockk.*
 import org.jetbrains.exposed.dao.id.EntityID
@@ -16,7 +18,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.sql.Connection
+import java.sql.Date.valueOf
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -29,7 +33,7 @@ internal class UserQueryPostgresDBTest {
         every { this@mockk.id } returns EntityID(UUID.fromString(createUserInfo().id), mockk())
         every { this@mockk.name } returns createUserInfo().name
         every { this@mockk.mail } returns createUserInfo().mail
-        every { this@mockk.birthday } returns java.sql.Date.valueOf(createUserInfo().birthday).toLocalDate()
+        every { this@mockk.birthday } returns valueOf(createUserInfo().birthday).toLocalDate()
         every { this@mockk.createdAt } returns LocalDateTime.ofInstant(
             createUserInfo().createdAt.toInstant(),
             ZoneId.of("UTC")
@@ -96,7 +100,7 @@ internal class UserQueryPostgresDBTest {
 
     @Test
     fun `年齢でフィルターしたユーザー一覧を取得する`() {
-        every { mockUser.birthday } returns java.sql.Date.valueOf(createUserInfo().birthday).toLocalDate()
+        every { mockUser.birthday } returns valueOf(createUserInfo().birthday).toLocalDate()
         every { dao.get(any<SqlUserFilter>()) } returns listOf(mockUser)
 
         val query = UserQueryPostgresDB(dao, mockk())
@@ -112,6 +116,34 @@ internal class UserQueryPostgresDBTest {
 
         val yearMonth = LocalDate.now()
         verify { dao.get(SqlUserFilter(oldFilter = SqlOldFilter(yearMonth.minusYears(30), yearMonth.minusYears(20)))) }
+    }
+
+    @Test
+    fun `指定したidのユーザを取得する`() {
+        every { dao.findById(any<UUID>()) } returns mockUser
+        val query = UserQueryPostgresDB(dao, mockk())
+        val user = query.get(createUserId())
+
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
+        verify { dao.findById(createUserId().value) }
+        assertEquals(user, createUserInfo())
+    }
+
+
+    @Test
+    fun `指定したidのユーザが存在しない場合例外を投げる`() {
+        every { dao.findById(any<UUID>()) } returns null
+        val query = UserQueryPostgresDB(dao, mockk())
+        assertThrows<UserNotFoundException> {
+            query.get(createUserId())
+        }
     }
 }
 

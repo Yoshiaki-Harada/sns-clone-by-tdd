@@ -7,6 +7,6 @@ data class UserInfo(
     val name: String,
     val mail: String,
     val birthday: String,
-    val createdAt: ZonedDateTime,
-    val updatedAt: ZonedDateTime
+    val createdAt: String,
+    val updatedAt: String
 )

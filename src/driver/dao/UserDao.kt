@@ -60,7 +60,7 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
                 }
                 filter.nameFilter != null -> {
                     Op.build {
-                        Users.name like "%${ filter.nameFilter }%"
+                        Users.name like "%${filter.nameFilter}%"
                     }
                 }
                 filter.oldFilter != null -> {
