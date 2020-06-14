@@ -8,4 +8,5 @@ import com.harada.viewmodel.UsersInfo
 interface UserQueryService {
     fun get(filter: UserFilter): UsersInfo
     fun get(id: UserId): UserInfo
+    fun isNotFound(id: UserId): Boolean
 }

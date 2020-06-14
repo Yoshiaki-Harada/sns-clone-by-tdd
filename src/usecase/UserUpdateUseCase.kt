@@ -8,15 +8,11 @@ import com.harada.port.UserWriteStore
 
 class UserUpdateUseCase(private val store: UserWriteStore, private val query: UserQueryService) : IUserUpdateUseCase {
     override fun execute(id: UserId, user: UpdateUser) {
-        kotlin.runCatching {
-            query.get(id)
-        }.onFailure {
-            throw UserNotFoundException(id.value)
-        }
-
+        if (query.isNotFound(id)) throw UserNotFoundException(id.value)
         user.mail?.let {
             if (it.isInValid()) throw InvalidMailException(it)
         }
         store.update(id, user)
     }
+
 }

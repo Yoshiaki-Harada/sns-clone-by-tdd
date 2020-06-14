@@ -42,6 +42,8 @@ class UserQueryPostgresDB(private val dao: UserDao.Companion, private val db: Da
         dao.findById(id.value)?.toInfo() ?: throw UserNotFoundException(userId = id.value)
     }
 
+    override fun isNotFound(id: UserId): Boolean = dao.findById(id.value) == null
+
 }
 
 fun UserDao.toInfo() = UserInfo(

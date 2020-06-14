@@ -26,6 +26,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 internal class UserQueryPostgresDBTest {
     private val dao = mockk<UserDao.Companion>(relaxed = true)
@@ -37,7 +38,6 @@ internal class UserQueryPostgresDBTest {
         every { this@mockk.createdAt } returns LocalDateTime.parse(createUserInfo().createdAt, formatter)
         every { this@mockk.updatedAt } returns LocalDateTime.parse(createUserInfo().updatedAt, formatter)
     }
-
 
     @BeforeEach
     fun setUp() {
@@ -130,7 +130,6 @@ internal class UserQueryPostgresDBTest {
         assertEquals(user, createUserInfo())
     }
 
-
     @Test
     fun `指定したidのユーザが存在しない場合例外を投げる`() {
         every { dao.findById(any<UUID>()) } returns null
@@ -138,6 +137,13 @@ internal class UserQueryPostgresDBTest {
         assertThrows<UserNotFoundException> {
             query.get(createUserId())
         }
+    }
+
+    @Test
+    fun `ユーザーが存在するか判定できる`() {
+        every { dao.findById(any<UUID>()) } returns null
+        val query = UserQueryPostgresDB(dao, mockk())
+        assertTrue(query.isNotFound(createUserId()))
     }
 }
 
