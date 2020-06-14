@@ -1,9 +1,8 @@
 package com.harada.rest
 
-import com.google.gson.JsonSyntaxException
 import com.harada.Injector
 import com.harada.domain.model.user.*
-import com.harada.gateway.UserNotFoundException
+import com.harada.getUUID
 import com.harada.port.UserQueryService
 import com.harada.usecase.IUserCreateUseCase
 import com.harada.usecase.IUserUpdateUseCase
@@ -11,8 +10,6 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.featureOrNull
 import io.ktor.application.install
-import io.ktor.features.StatusPages
-import io.ktor.http.HttpStatusCode
 import io.ktor.locations.*
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -20,7 +17,6 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,24 +30,7 @@ fun Application.userModule() {
 fun Application.userModuleWithDepth(kodein: Kodein) {
     // テストの際にここでinstallしないとエラーを起こすため
     if (this.featureOrNull(Locations) == null) install(Locations)
-    install(StatusPages) {
-        exception<ParseException> { cause ->
-            val errorMessage = cause.message ?: "Unknown error"
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
-        }
-        exception<JsonSyntaxException> { cause ->
-            val errorMessage = cause.message ?: "Unknown error"
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
-        }
-        exception<IllegalArgumentException> { cause ->
-            val errorMessage = cause.message ?: "Unknown error"
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
-        }
-        exception<UserNotFoundException> { cause ->
-            val errorMessage = cause.message ?: "Unknown error"
-            call.respond(HttpStatusCode.NotFound, ErrorResponse(errorMessage))
-        }
-    }
+
     val createUseCase by kodein.instance<IUserCreateUseCase>()
     val updateUseCase by kodein.instance<IUserUpdateUseCase>()
     val userQuery by kodein.instance<UserQueryService>()
@@ -65,7 +44,7 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
         @Location("/users/{id}")
         data class GetUserLocationById(val id: String)
         get<GetUserLocationById> { params ->
-            val userId = UUID.fromString(params.id)
+            val userId = getUUID(params.id)
             call.respond(userQuery.get(UserId(userId)))
         }
         @Location("/users")
@@ -90,7 +69,7 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
         @Location("/users/{id}")
         data class PutUserLocation(val id: String)
         put<PutUserLocation> { params ->
-            val userId = UUID.fromString(params.id)
+            val userId = getUUID(params.id)
             val user = call.receive<RequestUpdateUser>()
             updateUseCase.execute(UserId(userId), user = user.toUpdateUser())
             call.respond(emptyMap<String, String>())

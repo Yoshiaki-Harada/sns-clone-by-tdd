@@ -1,34 +1,36 @@
-package com.harada
+package rest
 
 import com.google.gson.JsonSyntaxException
+import com.harada.InvalidFormatIdException
 import com.harada.gateway.UserNotFoundException
 import com.harada.rest.ErrorResponse
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
 import io.ktor.gson.gson
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.locations.Locations
 import io.ktor.response.respond
+import io.ktor.server.testing.TestApplicationCall
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
+import io.ktor.server.testing.withTestApplication
 import java.text.ParseException
-import java.util.*
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
-
-@Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
-    install(Locations)
-    install(ContentNegotiation) {
-        gson {
-            setPrettyPrinting()
-        }
-    }
-    install(CallLogging) {}
-    install(StatusPages) {
+fun invokeWithTestApplication(
+    moduleFunction: Application.() -> Unit,
+    path: String,
+    method: HttpMethod,
+    body: String?,
+    contentType: ContentType,
+    assert: TestApplicationCall.() -> Unit
+) = withTestApplication(moduleFunction) {
+    application.install(ContentNegotiation) { gson { setPrettyPrinting() } }
+    application.install(StatusPages) {
         exception<ParseException> { cause ->
             val errorMessage = cause.message ?: "Unknown error"
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
@@ -50,16 +52,12 @@ fun Application.module(testing: Boolean = false) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
         }
     }
-}
-
-data class InvalidFormatIdException(val id: String) : Throwable("id: $id is not correct format.")
-
-fun getUUID(uuidStr: String): UUID {
-    return uuidStr.let {
-        runCatching {
-            UUID.fromString(it)
-        }.getOrElse {
-            throw InvalidFormatIdException(uuidStr)
-        }
+    with(handleRequest(method, path) {
+        addHeader(
+            HttpHeaders.ContentType, "$contentType"
+        )
+        if (body != null) setBody(body)
+    }) {
+        assert.invoke(this)
     }
 }

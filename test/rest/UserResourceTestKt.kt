@@ -7,6 +7,7 @@ import com.harada.domain.model.user.OldFilter
 import com.harada.domain.model.user.UserFilter
 import com.harada.domain.model.user.UserId
 import com.harada.gateway.UserNotFoundException
+import com.harada.module
 import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
@@ -286,21 +287,3 @@ class UserResourceTest {
     }
 }
 
-fun invokeWithTestApplication(
-    moduleFunction: Application.() -> Unit,
-    path: String,
-    method: HttpMethod,
-    body: String?,
-    contentType: ContentType,
-    assert: TestApplicationCall.() -> Unit
-) = withTestApplication(moduleFunction) {
-    application.install(ContentNegotiation) { gson { setPrettyPrinting() } }
-    with(handleRequest(method, path) {
-        addHeader(
-            HttpHeaders.ContentType, "$contentType"
-        )
-        if (body != null) setBody(body)
-    }) {
-        assert.invoke(this)
-    }
-}
