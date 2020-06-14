@@ -1,6 +1,7 @@
 import com.harada.domain.model.user.*
 import com.harada.driver.entity.UserEntity
 import com.harada.driver.entity.UserUpdateEntity
+import com.harada.formatter
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
 import com.harada.viewmodel.UserInfo
@@ -95,8 +96,8 @@ fun createUserInfo(
     name = name,
     mail = mail,
     birthday = sdFormat.format(birthday),
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    createdAt = formatter.format(createdAt),
+    updatedAt = formatter.format(updatedAt)
 )
 
 fun createUsersInfo(

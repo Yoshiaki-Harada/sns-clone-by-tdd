@@ -6,6 +6,7 @@ import com.harada.domain.model.user.UserFilter
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
+import com.harada.formatter
 import com.harada.gateway.UserNotFoundException
 import com.harada.gateway.UserQueryPostgresDB
 import com.harada.viewmodel.UsersInfo
@@ -23,7 +24,6 @@ import java.sql.Connection
 import java.sql.Date.valueOf
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -34,14 +34,8 @@ internal class UserQueryPostgresDBTest {
         every { this@mockk.name } returns createUserInfo().name
         every { this@mockk.mail } returns createUserInfo().mail
         every { this@mockk.birthday } returns valueOf(createUserInfo().birthday).toLocalDate()
-        every { this@mockk.createdAt } returns LocalDateTime.ofInstant(
-            createUserInfo().createdAt.toInstant(),
-            ZoneId.of("UTC")
-        )
-        every { this@mockk.updatedAt } returns LocalDateTime.ofInstant(
-            createUserInfo().updatedAt.toInstant(),
-            ZoneId.of("UTC")
-        )
+        every { this@mockk.createdAt } returns LocalDateTime.parse(createUserInfo().createdAt, formatter)
+        every { this@mockk.updatedAt } returns LocalDateTime.parse(createUserInfo().updatedAt, formatter)
     }
 
 

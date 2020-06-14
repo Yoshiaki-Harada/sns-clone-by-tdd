@@ -5,6 +5,7 @@ import com.harada.domain.model.user.UserId
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
+import com.harada.formatter
 import com.harada.port.UserQueryService
 import com.harada.viewmodel.UserInfo
 import com.harada.viewmodel.UsersInfo
@@ -12,8 +13,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 class UserQueryPostgresDB(private val dao: UserDao.Companion, private val db: Database) :
     UserQueryService {
@@ -50,6 +49,6 @@ fun UserDao.toInfo() = UserInfo(
     name = name,
     mail = mail,
     birthday = birthday.toString(),
-    createdAt = ZonedDateTime.of(createdAt, ZoneId.of("UTC")).toString(),
-    updatedAt = ZonedDateTime.of(updatedAt, ZoneId.of("UTC")).toString()
+    createdAt = formatter.format(createdAt),
+    updatedAt = formatter.format(updatedAt)
 )

@@ -13,10 +13,7 @@ import io.ktor.application.featureOrNull
 import io.ktor.application.install
 import io.ktor.features.StatusPages
 import io.ktor.http.HttpStatusCode
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import io.ktor.locations.get
-import io.ktor.locations.put
+import io.ktor.locations.*
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.post
@@ -28,10 +25,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+@KtorExperimentalLocationsAPI
 fun Application.userModule() {
     userModuleWithDepth(Injector.kodein)
 }
 
+@KtorExperimentalLocationsAPI
 fun Application.userModuleWithDepth(kodein: Kodein) {
     // テストの際にここでinstallしないとエラーを起こすため
     if (this.featureOrNull(Locations) == null) install(Locations)
@@ -101,7 +100,7 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
 
 data class ErrorResponse(val errorMessage: String)
 
-fun parseDate(date: String) = runCatching { SimpleDateFormat("yyyy-MM-dd").parse(date) }.getOrThrow()
+fun parseDate(date: String): Date = runCatching { SimpleDateFormat("yyyy-MM-dd").parse(date) }.getOrThrow()
 data class RequestUser(val name: String, val mail: String, val birthday: String)
 data class ResponseUserId(val userId: String)
 data class RequestUpdateUser(val name: String?, val mail: String?, val birthday: String?) {
