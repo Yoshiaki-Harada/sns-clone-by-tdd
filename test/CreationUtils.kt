@@ -86,8 +86,8 @@ fun createUpdateUserEntity(
 
 fun createUserInfo(
     id: UUID = createUserId().value,
-    name: String = createUser().name.toString(),
-    mail: String = createUser().mail.toString(),
+    name: String = createUser().name.value,
+    mail: String = createUser().mail.value,
     birthday: Date = createUser().birthday,
     createdAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC")),
     updatedAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC"))

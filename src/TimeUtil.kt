@@ -1,10 +1,10 @@
 package com.harada
 
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-fun getDateTimeNow() = ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime()
+val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+fun getDateTimeNow(): LocalDateTime = ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime()
 

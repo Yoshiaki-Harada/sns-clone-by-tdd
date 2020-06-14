@@ -1,5 +1,6 @@
 package rest
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.harada.domain.model.user.NameFilter
 import com.harada.domain.model.user.OldFilter
@@ -41,13 +42,13 @@ import java.util.*
 
 class UserResourceTest {
 
-    val gson = GsonBuilder().setPrettyPrinting().create()
+    val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
 
     @Nested
     inner class CreateUser {
 
-        val createUseCase = mockk<IUserCreateUseCase>() {
+        private val createUseCase = mockk<IUserCreateUseCase>() {
             every { this@mockk.execute(any()) } returns UserId(
                 UUID.fromString(
                     "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"
@@ -60,7 +61,7 @@ class UserResourceTest {
         }
 
         @Test
-        fun `userを登録することができる`() {
+        fun `ユーザーを登録することができる`() {
             invokeWithTestUserCreateApplication(
                 testKodein = testKodein,
                 body = gson.toJson(RequestUser("Tanaka Taro", "test@gmail.com", "1990-01-01")),
@@ -72,7 +73,7 @@ class UserResourceTest {
         }
 
         @Test
-        fun `不正な日付フォーマットの誕生日のUserを登録するとStatus Code 400が返却される`() {
+        fun `不正な日付フォーマットの誕生日のユーザーを登録するとStatus Code 400が返却される`() {
             invokeWithTestUserCreateApplication(
                 testKodein = testKodein,
                 body = gson.toJson(createRequestUser(birthday = "1990-")),
@@ -83,7 +84,7 @@ class UserResourceTest {
         }
 
         @Test
-        fun `不正なフォーマットのUserを登録するとStatus Code 400が返却される`() {
+        fun `不正なフォーマットのユーザーを登録するとStatus Code 400が返却される`() {
             invokeWithTestUserCreateApplication(
                 testKodein = testKodein,
                 body = "{\"nam\" : \"Taro\"",
@@ -94,7 +95,7 @@ class UserResourceTest {
         }
 
         @Test
-        fun `フィールドが揃っていないUserを登録するとStatus Code 400が返却される`() {
+        fun `フィールドが揃っていないユーザーを登録するとStatus Code 400が返却される`() {
             invokeWithTestUserCreateApplication(
                 testKodein = testKodein,
                 body = "{\"name\" : \"Taro\"}",
@@ -104,7 +105,7 @@ class UserResourceTest {
             )
         }
 
-        fun invokeWithTestUserCreateApplication(
+        private fun invokeWithTestUserCreateApplication(
             testKodein: Kodein,
             body: String?,
             assert: TestApplicationCall.() -> Unit
@@ -124,11 +125,11 @@ class UserResourceTest {
 
     @Nested
     inner class UpdateUser {
-        val updateUseCase = mockk<IUserUpdateUseCase>() {
+        private val updateUseCase = mockk<IUserUpdateUseCase>() {
             every { this@mockk.execute(id = any(), user = any()) } just Runs
         }
 
-        val testKodein = Kodein {
+        private val testKodein = Kodein {
             bind<IUserUpdateUseCase>() with singleton { updateUseCase }
         }
 
@@ -167,7 +168,7 @@ class UserResourceTest {
             )
         }
 
-        fun invokeWithTestUserUpdateApplication(
+        private fun invokeWithTestUserUpdateApplication(
             testKodein: Kodein,
             body: String?,
             userId: String = createUserId().value.toString(),
@@ -188,11 +189,11 @@ class UserResourceTest {
 
     @Nested
     inner class GetUser {
-        val query = mockk<UserQueryService>() {
+        private val query = mockk<UserQueryService>() {
             every { this@mockk.get(any<UserFilter>()) } returns createUsersInfo()
             every { this@mockk.get(any<UserId>()) } returns createUserInfo()
         }
-        val testKodein = Kodein {
+        private val testKodein = Kodein {
             bind<UserQueryService>() with singleton { query }
         }
 
@@ -203,6 +204,7 @@ class UserResourceTest {
                 assert = {
                     verify { query.get(UserFilter()) }
                     assertEquals(HttpStatusCode.OK, response.status())
+                    assertEquals(gson.toJson(createUsersInfo()), response.content)
                 }
             )
         }
@@ -239,6 +241,7 @@ class UserResourceTest {
                 assert = {
                     verify { query.get(createUserId()) }
                     assertEquals(HttpStatusCode.OK, response.status())
+                    assertEquals(gson.toJson(createUserInfo()), response.content)
                 }
             )
         }
@@ -263,7 +266,7 @@ class UserResourceTest {
             )
         }
 
-        fun invokeWithTestGetUsersApplication(
+        private fun invokeWithTestGetUsersApplication(
             testKodein: Kodein,
             path: String = "/users",
             body: String? = null,
