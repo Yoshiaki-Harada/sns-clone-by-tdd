@@ -1,6 +1,5 @@
 package com.harada.viewmodel
 
-import java.time.ZonedDateTime
 
 data class UserInfo(
     val id: String,
