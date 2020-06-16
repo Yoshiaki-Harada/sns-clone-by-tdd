@@ -18,7 +18,6 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
-import java.util.*
 
 
 @KtorExperimentalLocationsAPI
@@ -37,7 +36,7 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             val userId = createUseCase.execute(
                 Tweet(UserId(getUUID(json.userId)), Text(json.text))
             )
-            call.respond(ResponseUserId(userId.value.toString()))
+            call.respond(ResponseTweetId(userId.value.toString()))
         }
     }
 }
@@ -45,4 +44,8 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
 data class RequestTweet(
     val userId: String,
     val text: String
+)
+
+data class ResponseTweetId(
+    val tweetId: String
 )

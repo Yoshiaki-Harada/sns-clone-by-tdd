@@ -21,13 +21,13 @@ create table users
     updated_at timestamp default CURRENT_TIMESTAMP not null
 );
 
-create table messages
+create table tweets
 (
     id         uuid                                not null
-        constraint messages_pkey
+        constraint tweets_pkey
             primary key,
     user_id    uuid                                not null
-        constraint messages_user_id_fkey
+        constraint tweets_user_id_fkey
             references users
             on delete cascade,
     text       varchar(500),
@@ -46,7 +46,7 @@ create table comments
             on delete cascade,
     message_id uuid                                not null
         constraint comments_message_id_fkey
-            references messages
+            references tweets
             on delete cascade,
     text       varchar(500)                        not null,
     created_at timestamp default CURRENT_TIMESTAMP not null,
@@ -72,6 +72,6 @@ create table tag_map
             on delete cascade,
     message_id uuid not null
         constraint tag_map_message_id_fkey
-            references messages
+            references tweets
             on delete cascade
 );
