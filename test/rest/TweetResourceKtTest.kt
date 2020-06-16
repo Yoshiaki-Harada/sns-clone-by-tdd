@@ -11,6 +11,7 @@ import createTweetId
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -26,14 +27,15 @@ class TweetResourceKtTest {
 
     @Nested
     inner class CreateTweet {
+        private val useCase = mockk<ITweetCreateUseCase>() {
+            every { this@mockk.execute(any()) } returns createTweetId()
+        }
+        private val testKodein = Kodein {
+            bind<ITweetCreateUseCase>() with singleton { useCase }
+        }
+        @KtorExperimentalLocationsAPI
         @Test
         fun `メッセージを作成する`() {
-            val useCase = mockk<ITweetCreateUseCase>() {
-                every { this@mockk.execute(any()) } returns createTweetId()
-            }
-            val testKodein = Kodein {
-                bind<ITweetCreateUseCase>() with singleton { useCase }
-            }
             invokeWithTestApplication(
                 moduleFunction = {
                     tweetModuleWithDepth(testKodein)
@@ -52,12 +54,6 @@ class TweetResourceKtTest {
 
         @Test
         fun `不正なフォーマットのメッセージを作成しようとするとStatusCode 400が返却される`() {
-            val useCase = mockk<ITweetCreateUseCase>() {
-                every { this@mockk.execute(any()) } returns createTweetId()
-            }
-            val testKodein = Kodein {
-                bind<ITweetCreateUseCase>() with singleton { useCase }
-            }
             invokeWithTestApplication(
                 moduleFunction = {
                     tweetModuleWithDepth(testKodein)

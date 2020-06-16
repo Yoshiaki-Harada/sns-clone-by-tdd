@@ -99,7 +99,10 @@ fun createRequestTweet(
     text = text
 )
 
-fun createTweet() = Tweet(
-    createUserId(),
-    Text(TEST_TWEET)
+fun createTweet(
+    userId: UUID = createUserId().value,
+    text: String = TEST_TWEET
+) = Tweet(
+    UserId(userId),
+    Text(text)
 )

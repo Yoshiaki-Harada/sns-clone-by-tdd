@@ -7,7 +7,6 @@ import com.harada.domain.model.user.OldFilter
 import com.harada.domain.model.user.UserFilter
 import com.harada.domain.model.user.UserId
 import com.harada.gateway.UserNotFoundException
-import com.harada.module
 import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
@@ -20,18 +19,11 @@ import createUser
 import createUserId
 import createUserInfo
 import createUsersInfo
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
-import io.ktor.gson.gson
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.TestApplicationCall
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
@@ -41,6 +33,7 @@ import org.kodein.di.generic.bind
 import org.kodein.di.generic.singleton
 import java.util.*
 
+@KtorExperimentalLocationsAPI
 class UserResourceTest {
 
     val gson: Gson = GsonBuilder().setPrettyPrinting().create()
@@ -57,7 +50,7 @@ class UserResourceTest {
             )
         }
 
-        val testKodein = Kodein {
+        private val testKodein = Kodein {
             bind<IUserCreateUseCase>() with singleton { createUseCase }
         }
 

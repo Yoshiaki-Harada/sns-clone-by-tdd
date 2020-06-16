@@ -14,5 +14,4 @@ class UserUpdateUseCase(private val store: UserWriteStore, private val query: Us
         }
         store.update(id, user)
     }
-
 }
