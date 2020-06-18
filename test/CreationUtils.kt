@@ -1,9 +1,11 @@
 import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
+import com.harada.domain.model.message.UpdateTweet
 import com.harada.domain.model.user.*
 import com.harada.formatter
 import com.harada.rest.RequestTweet
+import com.harada.rest.RequestUpdateTweet
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
 import com.harada.viewmodel.UserInfo
@@ -86,6 +88,7 @@ fun createUsersInfo(
 ) = UsersInfo(userInfoList)
 
 const val TEST_TWEET = "test tweet"
+const val TEST_UPDATE_TWEET = "update test tweet"
 
 fun createTweetId(
     id: UUID = UUID.fromString("d3c68568-ef91-412f-bee6-46dac9474566")
@@ -105,5 +108,17 @@ fun createTweet(
 ) = Tweet(
     UserId(userId),
     Text(text)
+)
+
+fun createUpdateTweet(
+    text: String? = TEST_UPDATE_TWEET
+) = UpdateTweet(
+    text?.let { Text(it) }
+)
+
+fun createRequestUpdateTweet(
+    text: String = TEST_UPDATE_TWEET
+) = RequestUpdateTweet(
+    text = text
 )
 

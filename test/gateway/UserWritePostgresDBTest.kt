@@ -2,6 +2,9 @@ package gateway
 
 import com.harada.driver.dao.UserDao
 import com.harada.gateway.UserWritePostgresDB
+import com.harada.port.TweetWriteStore
+import com.harada.usecase.TweetCreateUseCase
+import createUpdateTweet
 import createUpdateUser
 import createUser
 import createUserId
@@ -11,6 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 internal class UserWritePostgresDBTest {
     val dao = mockk<UserDao.Companion>(relaxed = true) {

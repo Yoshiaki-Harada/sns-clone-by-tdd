@@ -3,6 +3,7 @@ package com.harada.usecase
 import com.harada.domain.model.message.LIMIT_TWEET_LENGTH
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
+import com.harada.domain.model.message.UpdateTweet
 import com.harada.gateway.UserNotFoundException
 import com.harada.port.TweetWriteStore
 import com.harada.port.UserQueryService

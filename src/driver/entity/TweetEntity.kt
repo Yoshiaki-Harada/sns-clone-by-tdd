@@ -10,3 +10,9 @@ data class TweetEntity(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )
+
+data class TweetUpdateEntity(
+    val id: UUID,
+    val text: String?,
+    val updatedAt: LocalDateTime
+)

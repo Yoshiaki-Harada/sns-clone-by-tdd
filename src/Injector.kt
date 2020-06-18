@@ -21,11 +21,12 @@ object Injector {
         bind<IUserCreateUseCase>() with singleton { UserCreateUseCase(instance()) }
         bind<IUserUpdateUseCase>() with singleton { UserUpdateUseCase(instance(), instance()) }
         bind<ITweetCreateUseCase>() with singleton { TweetCreateUseCase(instance(), instance()) }
+        bind<ITweetUpdateUseCase>() with singleton { TweetUpdateUseCase(instance()) }
     }
 
     val gatewayModule = Kodein.Module("gateway") {
         bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(), instance()) }
-        bind<TweetWriteStore>() with singleton { TweetWritePostgresDB(instance()) }
+        bind<TweetWriteStore>() with singleton { TweetWritePostgresDB(instance(), instance()) }
         bind<UserQueryService>() with singleton { UserQueryPostgresDB(instance(), instance()) }
     }
 

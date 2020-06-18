@@ -1,6 +1,7 @@
 package com.harada.driver.dao
 
 import com.harada.driver.entity.TweetEntity
+import com.harada.driver.entity.TweetUpdateEntity
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -24,6 +25,15 @@ class TweetDao(id: EntityID<UUID>) : UUIDEntity(id) {
             createdAt = entity.createdAt
             updatedAt = entity.updatedAt
         }.id.value
+
+        fun update(entity: TweetUpdateEntity) {
+            TweetDao.findById(entity.id)?.let { tweetDao ->
+                entity.text?.let {
+                    tweetDao.text = it
+                }
+                tweetDao.updatedAt = entity.updatedAt
+            }
+        }
     }
 
     var userId by Tweets.userId

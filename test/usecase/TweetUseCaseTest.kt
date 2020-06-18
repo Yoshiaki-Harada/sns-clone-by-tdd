@@ -6,12 +6,11 @@ import com.harada.port.TweetWriteStore
 import com.harada.port.UserQueryService
 import com.harada.usecase.OverTweetLengthException
 import com.harada.usecase.TweetCreateUseCase
+import com.harada.usecase.TweetUpdateUseCase
 import createTweet
 import createTweetId
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import createUpdateTweet
+import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -60,5 +59,25 @@ class TweetUseCaseTest {
             useCase.execute(tweet)
         }
         verify(exactly = 0) { store.save(tweet) }
+    }
+
+    @Test
+    fun `Tweetを更新することができる`() {
+        every { store.update(any(), any()) } just Runs
+        val useCase = TweetUpdateUseCase(store)
+        useCase.execute(createTweetId(), createUpdateTweet())
+
+        verify { store.update(createTweetId(), createUpdateTweet()) }
+    }
+
+
+    @Test
+    fun `文字数制限を超えるTweetは更新できない`() {
+        every { store.update(any(), any()) } just Runs
+        val useCase = TweetUpdateUseCase(store)
+        assertThrows<OverTweetLengthException> {
+            useCase.execute(createTweetId(), createUpdateTweet(text = "1".repeat(LIMIT_TWEET_LENGTH + 1)))
+        }
+        verify(exactly = 0) { store.update(createTweetId(), createUpdateTweet()) }
     }
 }
