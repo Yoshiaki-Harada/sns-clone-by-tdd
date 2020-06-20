@@ -7,6 +7,7 @@ import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
 import com.harada.domain.model.user.UserId
 import com.harada.getUUID
+import com.harada.port.TweetQueryService
 import com.harada.usecase.ITweetCreateUseCase
 import com.harada.usecase.ITweetUpdateUseCase
 import io.ktor.application.Application
@@ -19,6 +20,7 @@ import io.ktor.locations.Locations
 import io.ktor.locations.put
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
@@ -36,6 +38,7 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
     if (this.featureOrNull(Locations) == null) install(Locations)
     val createUseCase by kodein.instance<ITweetCreateUseCase>()
     val updateUseCase by kodein.instance<ITweetUpdateUseCase>()
+    val query by kodein.instance<TweetQueryService>()
     routing {
         post("/tweets") {
             val json = call.receive<RequestTweet>()
@@ -56,6 +59,9 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
                 )
             )
             call.respond(emptyMap<String, String>())
+        }
+        get("/tweets") {
+            call.respond(query.get())
         }
     }
 }

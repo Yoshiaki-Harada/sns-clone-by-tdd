@@ -8,6 +8,8 @@ import com.harada.rest.RequestTweet
 import com.harada.rest.RequestUpdateTweet
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
+import com.harada.viewmodel.TweetInfo
+import com.harada.viewmodel.TweetsInfo
 import com.harada.viewmodel.UserInfo
 import com.harada.viewmodel.UsersInfo
 import java.text.SimpleDateFormat
@@ -122,3 +124,29 @@ fun createRequestUpdateTweet(
     text = text
 )
 
+fun createTweetInfo(
+    id: UUID = createTweetId().value,
+    text: String = "",
+    userName: String = "Tanaka Taro",
+    createdAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC")),
+    updatedAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC"))
+) = TweetInfo(
+    id = id.toString(),
+    text = text,
+    userName = userName,
+    createdAt = formatter.format(createdAt),
+    updatedAt = formatter.format(updatedAt)
+)
+
+fun createTweetsInfo() = TweetsInfo(
+    listOf(
+        createTweetInfo(),
+        createTweetInfo(
+            UUID.fromString("6207005e-d8ab-47ec-b483-189d7cbd726f"),
+            "text 2",
+            "Tnaka Jiro",
+            ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC")),
+            ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC"))
+        )
+    )
+)

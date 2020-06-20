@@ -77,4 +77,5 @@ internal class UserUseCaseTest {
             useCase.execute(createUserId(), createUpdateUser())
         }
     }
+
 }

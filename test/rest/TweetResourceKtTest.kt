@@ -2,6 +2,7 @@ package rest
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.harada.port.TweetQueryService
 import com.harada.rest.ResponseTweetId
 import com.harada.rest.tweetModuleWithDepth
 import com.harada.usecase.ITweetCreateUseCase
@@ -10,6 +11,7 @@ import createRequestTweet
 import createRequestUpdateTweet
 import createTweet
 import createTweetId
+import createTweetsInfo
 import createUpdateTweet
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -96,6 +98,7 @@ class TweetResourceKtTest {
                 }
             )
         }
+
         // TODO
         fun `存在しないTweetを更新することはできない`() {
             invokeWithTestApplication(
@@ -111,6 +114,34 @@ class TweetResourceKtTest {
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
+        }
+    }
+
+    @Nested
+    inner class GetTweets {
+        private val query = mockk<TweetQueryService>() {
+            every { this@mockk.get() } returns createTweetsInfo()
+        }
+        private val testKodein = Kodein {
+            bind<TweetQueryService>() with singleton { query }
+        }
+
+        @Test
+        fun `ツイートの一覧を取得できる`() {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets",
+                method = HttpMethod.Get,
+                body = gson.toJson(createRequestUpdateTweet()),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify { query.get() }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+
         }
     }
 }

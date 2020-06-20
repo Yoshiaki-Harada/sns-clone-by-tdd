@@ -2,9 +2,11 @@ package com.harada
 
 import com.harada.driver.dao.TweetDao
 import com.harada.driver.dao.UserDao
+import com.harada.gateway.TweetQueryPostgresDB
 import com.harada.gateway.TweetWritePostgresDB
 import com.harada.gateway.UserQueryPostgresDB
 import com.harada.gateway.UserWritePostgresDB
+import com.harada.port.TweetQueryService
 import com.harada.port.TweetWriteStore
 import com.harada.port.UserQueryService
 import com.harada.port.UserWriteStore
@@ -28,6 +30,7 @@ object Injector {
         bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(), instance()) }
         bind<TweetWriteStore>() with singleton { TweetWritePostgresDB(instance(), instance()) }
         bind<UserQueryService>() with singleton { UserQueryPostgresDB(instance(), instance()) }
+        bind<TweetQueryService>() with singleton { TweetQueryPostgresDB(instance(), instance(), instance()) }
     }
 
     val driverModule = Kodein.Module("driver") {

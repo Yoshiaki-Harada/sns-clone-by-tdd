@@ -34,6 +34,8 @@ class TweetDao(id: EntityID<UUID>) : UUIDEntity(id) {
                 tweetDao.updatedAt = entity.updatedAt
             }
         }
+
+        fun get() = all().toList()
     }
 
     var userId by Tweets.userId
