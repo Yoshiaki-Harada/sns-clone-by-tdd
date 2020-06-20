@@ -2,6 +2,10 @@ package rest
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.harada.domain.model.tweet.TextFilter
+import com.harada.domain.model.tweet.TimeFilter
+import com.harada.domain.model.tweet.TweetFilter
+import com.harada.formatter
 import com.harada.port.TweetQueryService
 import com.harada.rest.ResponseTweetId
 import com.harada.rest.tweetModuleWithDepth
@@ -23,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.singleton
+import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
@@ -120,7 +125,7 @@ class TweetResourceKtTest {
     @Nested
     inner class GetTweets {
         private val query = mockk<TweetQueryService>() {
-            every { this@mockk.get() } returns createTweetsInfo()
+            every { this@mockk.get(any()) } returns createTweetsInfo()
         }
         private val testKodein = Kodein {
             bind<TweetQueryService>() with singleton { query }
@@ -137,11 +142,54 @@ class TweetResourceKtTest {
                 body = gson.toJson(createRequestUpdateTweet()),
                 contentType = ContentType.Application.Json,
                 assert = {
-                    verify { query.get() }
+                    verify { query.get(TweetFilter()) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
 
+        }
+
+        @Test
+        fun `Tweetをテキストで検索できる`() {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets?text=test",
+                method = HttpMethod.Get,
+                body = gson.toJson(createRequestUpdateTweet()),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify { query.get(TweetFilter(TextFilter("test"))) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `Tweetを作成時刻でフィルターできる`() {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets?createdFrom=2020-06-15T10:15:30%2B09:00&createdTo=2020-06-17T10:15:30%2B09:00",
+                method = HttpMethod.Get,
+                body = gson.toJson(createRequestUpdateTweet()),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify {
+                        query.get(
+                            TweetFilter(
+                                createTime = TimeFilter(
+                                    ZonedDateTime.parse("2020-06-15T10:15:30+09:00", formatter),
+                                    ZonedDateTime.parse("2020-06-17T10:15:30+09:00", formatter)
+                                )
+                            )
+                        )
+                    }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
         }
     }
 }

@@ -5,7 +5,11 @@ import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
+import com.harada.domain.model.tweet.TextFilter
+import com.harada.domain.model.tweet.TimeFilter
+import com.harada.domain.model.tweet.TweetFilter
 import com.harada.domain.model.user.UserId
+import com.harada.formatter
 import com.harada.getUUID
 import com.harada.port.TweetQueryService
 import com.harada.usecase.ITweetCreateUseCase
@@ -14,17 +18,14 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.featureOrNull
 import io.ktor.application.install
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import io.ktor.locations.put
+import io.ktor.locations.*
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
+import java.time.ZonedDateTime
 
 
 @KtorExperimentalLocationsAPI
@@ -60,8 +61,26 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             )
             call.respond(emptyMap<String, String>())
         }
-        get("/tweets") {
-            call.respond(query.get())
+        @Location("/tweets")
+        data class GetTweetLocation(
+            val text: String? = null,
+            val createdFrom: String? = null,
+            val createdTo: String? = null
+        )
+        get<GetTweetLocation> { params ->
+            val textFilter = params.text?.let { TextFilter(it) }
+            val timeFilter = params.createdFrom?.let {
+                params.createdTo?.let { to ->
+                    TimeFilter(
+                        from = ZonedDateTime.parse(it, formatter),
+                        to = ZonedDateTime.parse(to, formatter)
+                    )
+                } ?: kotlin.run {
+                    return@let TimeFilter(from = ZonedDateTime.parse(params.createdTo, formatter))
+                }
+            }
+
+            call.respond(query.get(TweetFilter(textFilter, timeFilter)))
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.harada.gateway
 
+import com.harada.domain.model.tweet.TweetFilter
 import com.harada.driver.dao.TweetDao
 import com.harada.driver.dao.UserDao
 import com.harada.formatter
@@ -15,7 +16,7 @@ class TweetQueryPostgresDB(
     private val userDao: UserDao.Companion,
     private val db: Database
 ) : TweetQueryService {
-    override fun get(): TweetsInfo = transaction(
+    override fun get(filter: TweetFilter): TweetsInfo = transaction(
         db = db,
         transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
         repetitionAttempts = 2

@@ -61,7 +61,7 @@ class TweetQueryPostgresDBTest {
         every { tweetDao.get() } returns listOf(mockTweet)
         every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
         val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
-        val result = query.get()
+        val result = query.get(mockk())
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),
