@@ -11,3 +11,9 @@ data class CommentEntity(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )
+
+data class CommentUpdateEntity(
+    val id: UUID,
+    val text: String?,
+    val updatedAt: LocalDateTime
+)

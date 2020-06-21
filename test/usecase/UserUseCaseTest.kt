@@ -1,7 +1,7 @@
 package usecase
 
 import com.harada.domain.model.user.UserId
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.port.UserWriteStore
 import com.harada.usecase.InvalidMailException
@@ -28,6 +28,7 @@ internal class UserUseCaseTest {
         every { writeStore.save(any()) } returns createUserId()
         every { writeStore.update(any(), any()) } just Runs
         every { query.get(any<UserId>()) } returns createUserInfo()
+        every { query.isNotFound(any<UserId>()) } returns false
     }
 
     @Test
@@ -71,7 +72,9 @@ internal class UserUseCaseTest {
 
     @Test
     fun `存在しないユーザは更新できない`() {
-        every { query.get(any<UserId>()) } throws UserNotFoundException(createUserId().value)
+        every { query.isNotFound(any<UserId>()) } throws UserNotFoundException(
+            createUserId().value
+        )
         val useCase = UserUpdateUseCase(this.writeStore, query)
         assertThrows<UserNotFoundException> {
             useCase.execute(createUserId(), createUpdateUser())

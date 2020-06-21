@@ -2,7 +2,7 @@ package com.harada.usecase
 
 import com.harada.domain.model.user.UpdateUser
 import com.harada.domain.model.user.UserId
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.port.UserWriteStore
 

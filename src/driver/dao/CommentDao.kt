@@ -1,6 +1,7 @@
 package com.harada.driver.dao
 
 import com.harada.driver.entity.CommentEntity
+import com.harada.driver.entity.CommentUpdateEntity
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -26,6 +27,16 @@ class CommentDao(id: EntityID<UUID>) : UUIDEntity(id) {
             createdAt = entity.createdAt
             updatedAt = entity.updatedAt
         }.id.value
+
+        fun update(entity: CommentUpdateEntity) {
+            CommentDao.findById(entity.id)?.let { commentDao ->
+                entity.text?.let {
+                    commentDao.text = it
+                }
+                commentDao.updatedAt = entity.updatedAt
+            }
+        }
+
     }
 
     var tweetId by Comments.tweetId

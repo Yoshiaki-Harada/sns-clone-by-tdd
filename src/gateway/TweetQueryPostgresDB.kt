@@ -7,7 +7,9 @@ import com.harada.driver.dao.SqlTweetFilter
 import com.harada.driver.dao.TweetDao
 import com.harada.driver.dao.UserDao
 import com.harada.formatter
+import com.harada.port.TweetNotFoundException
 import com.harada.port.TweetQueryService
+import com.harada.port.UserNotFoundException
 import com.harada.viewmodel.TweetInfo
 import com.harada.viewmodel.TweetsInfo
 import org.jetbrains.exposed.sql.Database
@@ -26,7 +28,9 @@ class TweetQueryPostgresDB(
         repetitionAttempts = 2
     ) {
         val tweet = tweetDao.findById(id.value) ?: throw TweetNotFoundException(id.value)
-        val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(tweet.id.value)
+        val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(
+            tweet.id.value
+        )
         tweet.toInfo(user.name)
     }
 
@@ -46,7 +50,9 @@ class TweetQueryPostgresDB(
             }
         )).let {
             it.map { tweet ->
-                val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(tweet.id.value)
+                val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(
+                    tweet.id.value
+                )
                 tweet.toInfo(user.name)
             }
         }.let {

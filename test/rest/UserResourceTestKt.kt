@@ -6,7 +6,7 @@ import com.harada.domain.model.user.NameFilter
 import com.harada.domain.model.user.OldFilter
 import com.harada.domain.model.user.UserFilter
 import com.harada.domain.model.user.UserId
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
 import com.harada.rest.userModuleWithDepth
@@ -244,7 +244,9 @@ class UserResourceTest {
         fun `指定したidのユーザが存在しないとき404を返す`() {
 
             val query = mockk<UserQueryService>() {
-                every { this@mockk.get(any<UserId>()) } throws UserNotFoundException(createUserId().value)
+                every { this@mockk.get(any<UserId>()) } throws UserNotFoundException(
+                    createUserId().value
+                )
             }
 
             val testKodein = Kodein {

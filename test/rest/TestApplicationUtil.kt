@@ -2,7 +2,7 @@ package rest
 
 import com.google.gson.JsonSyntaxException
 import com.harada.InvalidFormatIdException
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.rest.ErrorResponse
 import io.ktor.application.Application
 import io.ktor.application.call

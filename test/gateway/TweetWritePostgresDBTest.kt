@@ -3,6 +3,7 @@ package gateway
 import com.harada.driver.dao.CommentDao
 import com.harada.driver.dao.TweetDao
 import com.harada.gateway.TweetWritePostgresDB
+import com.harada.port.TweetNotFoundException
 import createTweet
 import createTweetId
 import createUpdateTweet
@@ -12,10 +13,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.*
 import kotlin.test.assertEquals
 
 class TweetWritePostgresDBTest {
+    private val tweetDao = mockk<TweetDao.Companion>()
+    private val commentDao = mockk<CommentDao.Companion>()
 
     @BeforeEach
     fun setUp() {
@@ -23,6 +27,7 @@ class TweetWritePostgresDBTest {
         every { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
+        clearMocks(tweetDao, commentDao)
     }
 
     @AfterEach
@@ -56,12 +61,34 @@ class TweetWritePostgresDBTest {
 
     @Test
     fun `Tweetを更新することができる`() {
-        val dao = mockk<TweetDao.Companion>()
-        every { dao.update(any()) } just Runs
-        val db = TweetWritePostgresDB(dao, mockk(), mockk())
+        every { tweetDao.findById(any<UUID>()) } returns mockk()
+        every { tweetDao.update(any()) } just Runs
+        val db = TweetWritePostgresDB(tweetDao, mockk(), mockk())
         db.update(createTweetId(), createUpdateTweet())
 
         verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
-        verify { dao.update(any()) }
+        verify { tweetDao.update(any()) }
+    }
+
+    @Test
+    fun `Tweet(リプライ)を更新することができる`() {
+        every { tweetDao.findById(any<UUID>()) } returns null
+        every { commentDao.findById(any<UUID>()) } returns mockk()
+        every { commentDao.update(any()) } just Runs
+        val db = TweetWritePostgresDB(tweetDao, commentDao, mockk())
+        db.update(createTweetId(), createUpdateTweet())
+
+        verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
+        verify { commentDao.update(any()) }
+    }
+
+    @Test
+    fun `存在しないツイートは更新することができない`() {
+        every { tweetDao.findById(any<UUID>()) } returns null
+        every { commentDao.findById(any<UUID>()) } returns null
+        val db = TweetWritePostgresDB(tweetDao, commentDao, mockk())
+        assertThrows<TweetNotFoundException> {
+            db.update(createTweetId(), createUpdateTweet())
+        }
     }
 }

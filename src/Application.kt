@@ -1,7 +1,7 @@
 package com.harada
 
 import com.google.gson.JsonSyntaxException
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.rest.ErrorResponse
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -15,7 +15,6 @@ import io.ktor.locations.Locations
 import io.ktor.response.respond
 import java.text.ParseException
 import java.time.format.DateTimeParseException
-import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 

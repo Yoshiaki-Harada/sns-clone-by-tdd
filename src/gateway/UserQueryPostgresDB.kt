@@ -6,6 +6,7 @@ import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
 import com.harada.formatter
+import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.viewmodel.UserInfo
 import com.harada.viewmodel.UsersInfo

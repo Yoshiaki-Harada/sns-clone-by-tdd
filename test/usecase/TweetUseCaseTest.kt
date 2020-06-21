@@ -1,8 +1,8 @@
 package usecase
 
 import com.harada.domain.model.message.LIMIT_TWEET_LENGTH
-import com.harada.gateway.TweetNotFoundException
-import com.harada.gateway.UserNotFoundException
+import com.harada.port.TweetNotFoundException
+import com.harada.port.UserNotFoundException
 import com.harada.port.TweetQueryService
 import com.harada.port.TweetWriteStore
 import com.harada.port.UserQueryService
@@ -37,6 +37,7 @@ class TweetUseCaseTest {
         every { store.save(any()) } returns createTweetId()
         val useCase = TweetCreateUseCase(store, userQuery, mockk())
         val tweetId = useCase.execute(tweet)
+
         verify { store.save(tweet) }
         assertEquals(tweetId, createTweetId())
     }

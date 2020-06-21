@@ -49,6 +49,7 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             )
             call.respond(ResponseTweetId(userId.value.toString()))
         }
+
         @Location("/tweets/{id}")
         data class PutTweetLocation(val id: String)
         put<PutTweetLocation> { params ->
