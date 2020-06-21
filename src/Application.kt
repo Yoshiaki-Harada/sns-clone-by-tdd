@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.locations.Locations
 import io.ktor.response.respond
 import java.text.ParseException
+import java.time.format.DateTimeParseException
 import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -29,6 +30,10 @@ fun Application.module(testing: Boolean = false) {
     }
     install(CallLogging) {}
     install(StatusPages) {
+        exception<DateTimeParseException> { cause ->
+            val errorMessage = cause.message ?: "Unknown error"
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
+        }
         exception<ParseException> { cause ->
             val errorMessage = cause.message ?: "Unknown error"
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
@@ -48,6 +53,10 @@ fun Application.module(testing: Boolean = false) {
         exception<InvalidFormatIdException> { cause ->
             val errorMessage = cause.message ?: "Unknown error"
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessage))
+        }
+        exception<Throwable> { cause ->
+            val errorMessage = cause.message ?: "Unknown error"
+            call.respond(HttpStatusCode.InternalServerError, ErrorResponse(errorMessage))
         }
     }
 }

@@ -1,9 +1,9 @@
 package gateway
 
-import com.harada.driver.dao.TweetDao
-import com.harada.driver.dao.Tweets
-import com.harada.driver.dao.UserDao
-import com.harada.driver.dao.Users
+import com.harada.domain.model.tweet.TextFilter
+import com.harada.domain.model.tweet.TimeFilter
+import com.harada.domain.model.tweet.TweetFilter
+import com.harada.driver.dao.*
 import com.harada.formatter
 import com.harada.gateway.TweetQueryPostgresDB
 import com.harada.viewmodel.TweetsInfo
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.sql.Connection
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -38,6 +39,7 @@ class TweetQueryPostgresDBTest {
 
     @BeforeEach
     fun setUp() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
         mockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
         every {
             transaction(
@@ -48,7 +50,7 @@ class TweetQueryPostgresDBTest {
         } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
-        clearMocks(tweetDao)
+        clearMocks(tweetDao, userDao)
     }
 
     @AfterEach
@@ -58,10 +60,10 @@ class TweetQueryPostgresDBTest {
 
     @Test
     fun `Tweetの一覧を取得できる`() {
-        every { tweetDao.get() } returns listOf(mockTweet)
+        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
         every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
         val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
-        val result = query.get(mockk())
+        val result = query.get(TweetFilter())
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),
@@ -70,7 +72,64 @@ class TweetQueryPostgresDBTest {
                 repetitionAttempts = 2
             )
         }
-
         assertEquals(result, TweetsInfo(listOf(createTweetInfo())))
+    }
+
+
+    @Test
+    fun `Tweetをテキストで検索できる`() {
+        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
+        every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
+        val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
+        query.get(TweetFilter(text = TextFilter("test")))
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
+        verify {
+            tweetDao.get(SqlTweetFilter(textFilter = "test"))
+        }
+
+    }
+
+    @Test
+    fun `Tweetを作成時間で検索できる`() {
+        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
+        every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
+        val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
+        query.get(
+            TweetFilter(
+                createTime = TimeFilter(
+                    from = ZonedDateTime.parse(
+                        "2020-06-17T10:15:30+09:00",
+                        formatter
+                    ), to = ZonedDateTime.parse(
+                        "2020-06-18T10:15:30+09:00",
+                        formatter
+                    )
+                )
+            )
+        )
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
+        verify {
+            tweetDao.get(
+                SqlTweetFilter(
+                    createFilter = SqlDateTimeFilter(
+                        from = LocalDateTime.of(2020, 6, 17, 10, 15, 30), to = LocalDateTime.of(2020, 6, 18, 10, 15, 30)
+                    )
+                )
+            )
+        }
     }
 }

@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 import java.time.LocalDate
+import java.time.ZoneId
 
 class UserQueryPostgresDB(private val dao: UserDao.Companion, private val db: Database) :
     UserQueryService {
@@ -58,6 +59,6 @@ fun UserDao.toInfo() = UserInfo(
     name = name,
     mail = mail,
     birthday = birthday.toString(),
-    createdAt = formatter.format(createdAt),
-    updatedAt = formatter.format(updatedAt)
+    createdAt = createdAt.atZone(ZoneId.of("UTC")).format(formatter),
+    updatedAt = updatedAt.atZone(ZoneId.of("UTC")).format(formatter)
 )

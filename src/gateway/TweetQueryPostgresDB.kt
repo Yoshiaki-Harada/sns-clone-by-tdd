@@ -1,6 +1,8 @@
 package com.harada.gateway
 
 import com.harada.domain.model.tweet.TweetFilter
+import com.harada.driver.dao.SqlDateTimeFilter
+import com.harada.driver.dao.SqlTweetFilter
 import com.harada.driver.dao.TweetDao
 import com.harada.driver.dao.UserDao
 import com.harada.formatter
@@ -10,6 +12,7 @@ import com.harada.viewmodel.TweetsInfo
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
+import java.time.ZoneId
 
 class TweetQueryPostgresDB(
     private val tweetDao: TweetDao.Companion,
@@ -22,7 +25,15 @@ class TweetQueryPostgresDB(
         repetitionAttempts = 2
     )
     {
-        tweetDao.get().let {
+        tweetDao.get(SqlTweetFilter(
+            textFilter = filter.text?.value,
+            createFilter = filter.createTime?.let {
+                SqlDateTimeFilter(
+                    it.from.toLocalDateTime(),
+                    it.to.toLocalDateTime()
+                )
+            }
+        )).let {
             it.map { tweet ->
                 val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(tweet.id.value)
                 tweet.toInfo(user.name)
@@ -37,6 +48,6 @@ fun TweetDao.toInfo(userName: String) = TweetInfo(
     id = id.value.toString(),
     text = text,
     userName = userName,
-    createdAt = createdAt.format(formatter),
-    updatedAt = updatedAt.format(formatter)
+    createdAt = createdAt.atZone(ZoneId.of("UTC")).format(formatter),
+    updatedAt = updatedAt.atZone(ZoneId.of("UTC")).format(formatter)
 )

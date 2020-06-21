@@ -6,7 +6,9 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.and
 import java.time.LocalDateTime
 import java.util.*
 
@@ -35,7 +37,30 @@ class TweetDao(id: EntityID<UUID>) : UUIDEntity(id) {
             }
         }
 
-        fun get() = all().toList()
+        fun get(filter: SqlTweetFilter): List<TweetDao> {
+            val cond = when {
+                filter.textFilter != null && filter.createFilter != null -> {
+                    Op.build {
+                        Tweets.text like filter.textFilter and Tweets.createdAt.between(
+                            filter.createFilter.from,
+                            filter.createFilter.to
+                        )
+                    }
+                }
+                filter.textFilter != null -> {
+                    Op.build {
+                        Tweets.text like "%${filter.textFilter}%"
+                    }
+                }
+                filter.createFilter != null -> {
+                    Op.build {
+                        Tweets.createdAt.between(filter.createFilter.from, filter.createFilter.to)
+                    }
+                }
+                else -> null
+            }
+            return cond?.let { TweetDao.find(it).toList() } ?: TweetDao.all().toList()
+        }
     }
 
     var userId by Tweets.userId
@@ -43,3 +68,7 @@ class TweetDao(id: EntityID<UUID>) : UUIDEntity(id) {
     var createdAt by Tweets.createdAt
     var updatedAt by Tweets.updatedAt
 }
+
+data class SqlTweetFilter(val textFilter: String? = null, val createFilter: SqlDateTimeFilter? = null)
+
+data class SqlDateTimeFilter(val from: LocalDateTime, val to: LocalDateTime)

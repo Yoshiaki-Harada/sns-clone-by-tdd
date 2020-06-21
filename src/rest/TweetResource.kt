@@ -26,6 +26,7 @@ import io.ktor.routing.routing
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
 import java.time.ZonedDateTime
+import java.time.format.DateTimeParseException
 
 
 @KtorExperimentalLocationsAPI
@@ -72,8 +73,8 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             val timeFilter = params.createdFrom?.let {
                 params.createdTo?.let { to ->
                     TimeFilter(
-                        from = ZonedDateTime.parse(it, formatter),
-                        to = ZonedDateTime.parse(to, formatter)
+                        from = parseDateTime(it),
+                        to = parseDateTime(to)
                     )
                 } ?: kotlin.run {
                     return@let TimeFilter(from = ZonedDateTime.parse(params.createdTo, formatter))
@@ -95,3 +96,10 @@ data class RequestTweet(
 data class ResponseTweetId(
     val tweetId: String
 )
+
+fun parseDateTime(dateTime: String): ZonedDateTime = runCatching { ZonedDateTime.parse(dateTime, formatter) }.getOrElse {
+    if (it is DateTimeParseException) {
+        throw DateTimeParseException("Date Time Format must be 2011-12-03+01:00 but $dateTime", dateTime, it.errorIndex)
+    }
+    throw it
+}
