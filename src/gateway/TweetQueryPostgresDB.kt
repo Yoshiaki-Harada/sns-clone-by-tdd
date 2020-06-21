@@ -1,5 +1,6 @@
 package com.harada.gateway
 
+import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.tweet.TweetFilter
 import com.harada.driver.dao.SqlDateTimeFilter
 import com.harada.driver.dao.SqlTweetFilter
@@ -19,6 +20,16 @@ class TweetQueryPostgresDB(
     private val userDao: UserDao.Companion,
     private val db: Database
 ) : TweetQueryService {
+    override fun get(id: TweetId): TweetInfo = transaction(
+        db = db,
+        transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+        repetitionAttempts = 2
+    ) {
+        val tweet = tweetDao.findById(id.value) ?: throw TweetNotFoundException(id.value)
+        val user = userDao.findById(tweet.userId) ?: throw UserNotFoundException(tweet.id.value)
+        tweet.toInfo(user.name)
+    }
+
     override fun get(filter: TweetFilter): TweetsInfo = transaction(
         db = db,
         transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
@@ -41,6 +52,14 @@ class TweetQueryPostgresDB(
         }.let {
             TweetsInfo(it)
         }
+    }
+
+    override fun isNotFound(tweetId: TweetId): Boolean = transaction(
+        db = db,
+        transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+        repetitionAttempts = 2
+    ) {
+        tweetDao.findById(tweetId.value) == null
     }
 }
 

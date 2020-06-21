@@ -1,6 +1,7 @@
 package usecase
 
 import com.harada.domain.model.message.LIMIT_TWEET_LENGTH
+import com.harada.gateway.TweetNotFoundException
 import com.harada.gateway.UserNotFoundException
 import com.harada.port.TweetQueryService
 import com.harada.port.TweetWriteStore
@@ -15,11 +16,13 @@ import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.*
 import kotlin.test.assertEquals
 
 class TweetUseCaseTest {
     private val userQuery = mockk<UserQueryService>()
     private val store = mockk<TweetWriteStore>()
+    private val tweetQuery = mockk<TweetQueryService>()
 
     @BeforeEach
     fun setUp() {
@@ -32,10 +35,24 @@ class TweetUseCaseTest {
         every { userQuery.isNotFound(tweet.userId) } returns false
         val store = mockk<TweetWriteStore>()
         every { store.save(any()) } returns createTweetId()
-        val useCase = TweetCreateUseCase(store, userQuery)
+        val useCase = TweetCreateUseCase(store, userQuery, mockk())
         val tweetId = useCase.execute(tweet)
         verify { store.save(tweet) }
         assertEquals(tweetId, createTweetId())
+    }
+
+    @Test
+    fun `存在しないTweetに対してはリプライできない`() {
+        val tweet = createTweet(replyTo = UUID.fromString("7865abd1-886d-467d-ac59-7df75d010473"))
+        every { userQuery.isNotFound(tweet.userId) } returns false
+        every { tweetQuery.isNotFound(any()) } returns true
+        val store = mockk<TweetWriteStore>()
+        every { store.save(any()) } returns createTweetId()
+        val useCase = TweetCreateUseCase(store, userQuery, tweetQuery)
+
+        assertThrows<TweetNotFoundException> {
+            useCase.execute(tweet)
+        }
     }
 
     @Test
@@ -43,7 +60,7 @@ class TweetUseCaseTest {
         val tweet = createTweet(text = "1".repeat(LIMIT_TWEET_LENGTH + 1))
         every { userQuery.isNotFound(tweet.userId) } returns false
         every { store.save(any()) } returns createTweetId()
-        val useCase = TweetCreateUseCase(store, userQuery)
+        val useCase = TweetCreateUseCase(store, userQuery, mockk())
         assertThrows<OverTweetLengthException> {
             useCase.execute(tweet)
         }
@@ -55,7 +72,7 @@ class TweetUseCaseTest {
         val tweet = createTweet(text = "1".repeat(LIMIT_TWEET_LENGTH + 1))
         every { userQuery.isNotFound(tweet.userId) } returns true
         every { store.save(any()) } returns createTweetId()
-        val useCase = TweetCreateUseCase(store, userQuery)
+        val useCase = TweetCreateUseCase(store, userQuery, mockk())
         assertThrows<UserNotFoundException> {
             useCase.execute(tweet)
         }
@@ -67,10 +84,8 @@ class TweetUseCaseTest {
         every { store.update(any(), any()) } just Runs
         val useCase = TweetUpdateUseCase(store)
         useCase.execute(createTweetId(), createUpdateTweet())
-
         verify { store.update(createTweetId(), createUpdateTweet()) }
     }
-
 
     @Test
     fun `文字数制限を超えるTweetは更新できない`() {

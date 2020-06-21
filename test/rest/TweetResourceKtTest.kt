@@ -2,10 +2,12 @@ package rest
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.tweet.TextFilter
 import com.harada.domain.model.tweet.TimeFilter
 import com.harada.domain.model.tweet.TweetFilter
 import com.harada.formatter
+import com.harada.getUUID
 import com.harada.port.TweetQueryService
 import com.harada.rest.ResponseTweetId
 import com.harada.rest.tweetModuleWithDepth
@@ -15,6 +17,7 @@ import createRequestTweet
 import createRequestUpdateTweet
 import createTweet
 import createTweetId
+import createTweetInfo
 import createTweetsInfo
 import createUpdateTweet
 import io.ktor.http.ContentType
@@ -28,6 +31,7 @@ import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.singleton
 import java.time.ZonedDateTime
+import java.util.*
 import kotlin.test.assertEquals
 
 @KtorExperimentalLocationsAPI
@@ -57,6 +61,23 @@ class TweetResourceKtTest {
                     verify { useCase.execute(createTweet()) }
                     assertEquals(HttpStatusCode.OK, response.status())
                     assertEquals(gson.toJson(ResponseTweetId(createTweetId().value.toString())), response.content)
+                }
+            )
+        }
+
+        @Test
+        fun `Tweetに対してリプライできる`() {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets",
+                method = HttpMethod.Post,
+                body = gson.toJson(createRequestTweet(replyTo = "7865abd1-886d-467d-ac59-7df75d010473")),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify { useCase.execute(createTweet(replyTo = getUUID("7865abd1-886d-467d-ac59-7df75d010473"))) }
+                    assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
         }
@@ -125,10 +146,29 @@ class TweetResourceKtTest {
     @Nested
     inner class GetTweets {
         private val query = mockk<TweetQueryService>() {
-            every { this@mockk.get(any()) } returns createTweetsInfo()
+            every { this@mockk.get(any<TweetFilter>()) } returns createTweetsInfo()
+            every { this@mockk.get(any<TweetId>()) } returns createTweetInfo()
         }
         private val testKodein = Kodein {
             bind<TweetQueryService>() with singleton { query }
+        }
+
+        @Test
+        fun `idを指定してTweetを取得できる`() {
+            val id = createTweetInfo().id
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets/$id",
+                method = HttpMethod.Get,
+                body = gson.toJson(createRequestUpdateTweet()),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify { query.get(TweetId(UUID.fromString(id))) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
         }
 
         @Test
@@ -146,7 +186,6 @@ class TweetResourceKtTest {
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
-
         }
 
         @Test

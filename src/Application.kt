@@ -63,12 +63,3 @@ fun Application.module(testing: Boolean = false) {
 
 data class InvalidFormatIdException(val id: String) : Throwable("id: $id is not correct format.")
 
-fun getUUID(uuidStr: String): UUID {
-    return uuidStr.let {
-        runCatching {
-            UUID.fromString(it)
-        }.getOrElse {
-            throw InvalidFormatIdException(uuidStr)
-        }
-    }
-}

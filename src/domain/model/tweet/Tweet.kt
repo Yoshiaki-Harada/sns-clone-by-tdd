@@ -4,7 +4,11 @@ import com.harada.domain.model.user.UserId
 
 const val LIMIT_TWEET_LENGTH = 200
 
-data class Tweet(val userId: UserId, val text: Text) {
+data class Tweet(
+    val userId: UserId,
+    val text: Text,
+    val replyTo: TweetId? = null
+) {
     fun isInLimitTweetLength() = text.isInCharacterLimit()
     fun isOverLimitTweetLength() = !text.isInCharacterLimit()
     fun length() = text.length()

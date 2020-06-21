@@ -1,5 +1,6 @@
 package gateway
 
+import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.tweet.TextFilter
 import com.harada.domain.model.tweet.TimeFilter
 import com.harada.domain.model.tweet.TweetFilter
@@ -7,6 +8,7 @@ import com.harada.driver.dao.*
 import com.harada.formatter
 import com.harada.gateway.TweetQueryPostgresDB
 import com.harada.viewmodel.TweetsInfo
+import createTweetId
 import createTweetInfo
 import createUserInfo
 import io.mockk.*
@@ -21,6 +23,7 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TweetQueryPostgresDBTest {
     private val tweetDao = mockk<TweetDao.Companion>()
@@ -56,6 +59,41 @@ class TweetQueryPostgresDBTest {
     @AfterEach
     fun tearDown() {
         unmockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
+    }
+
+    @Test
+    fun `Tweetをidを指定して取得できる`() {
+        every { tweetDao.findById(any<UUID>()) } returns mockTweet
+        every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
+
+        val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
+        val result = query.get(TweetId(UUID.fromString(createTweetInfo().id)))
+
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
+        assertEquals(result, createTweetInfo())
+    }
+    @Test
+    fun `Tweetをidを指定して存在するかを確認できる`() {
+        every { tweetDao.findById(any<UUID>()) } returns null
+        every { userDao.findById(any<EntityID<UUID>>()) } returns mockUser
+        val query = TweetQueryPostgresDB(tweetDao, userDao, mockk())
+        assertTrue(query.isNotFound(createTweetId()))
+
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
     }
 
     @Test

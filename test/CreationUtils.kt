@@ -98,18 +98,22 @@ fun createTweetId(
 
 fun createRequestTweet(
     userId: UUID = createUserId().value,
-    text: String = TEST_TWEET
+    text: String = TEST_TWEET,
+    replyTo: String? = null
 ) = RequestTweet(
     userId = userId.toString(),
-    text = text
+    text = text,
+    replyTo = replyTo
 )
 
 fun createTweet(
     userId: UUID = createUserId().value,
-    text: String = TEST_TWEET
+    text: String = TEST_TWEET,
+    replyTo: UUID? = null
 ) = Tweet(
     UserId(userId),
-    Text(text)
+    Text(text),
+    replyTo?.let { TweetId(it) }
 )
 
 fun createUpdateTweet(

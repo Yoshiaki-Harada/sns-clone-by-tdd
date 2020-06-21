@@ -45,7 +45,7 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
         post("/tweets") {
             val json = call.receive<RequestTweet>()
             val userId = createUseCase.execute(
-                Tweet(UserId(getUUID(json.userId)), Text(json.text))
+                Tweet(UserId(getUUID(json.userId)), Text(json.text), json.replyTo?.let { TweetId(getUUID(it)) })
             )
             call.respond(ResponseTweetId(userId.value.toString()))
         }
@@ -62,13 +62,14 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             )
             call.respond(emptyMap<String, String>())
         }
+
         @Location("/tweets")
-        data class GetTweetLocation(
+        data class GetTweetsLocation(
             val text: String? = null,
             val createdFrom: String? = null,
             val createdTo: String? = null
         )
-        get<GetTweetLocation> { params ->
+        get<GetTweetsLocation> { params ->
             val textFilter = params.text?.let { TextFilter(it) }
             val timeFilter = params.createdFrom?.let {
                 params.createdTo?.let { to ->
@@ -83,6 +84,13 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
 
             call.respond(query.get(TweetFilter(textFilter, timeFilter)))
         }
+
+        @Location("/tweets/{id}")
+        data class GetTweetLocation(val id: String)
+        get<GetTweetLocation> { params ->
+            val tweetId = getUUID(params.id)
+            call.respond(query.get(TweetId(tweetId)))
+        }
     }
 }
 
@@ -90,16 +98,22 @@ data class RequestUpdateTweet(val text: String?)
 
 data class RequestTweet(
     val userId: String,
-    val text: String
+    val text: String,
+    val replyTo: String? = null
 )
 
 data class ResponseTweetId(
     val tweetId: String
 )
 
-fun parseDateTime(dateTime: String): ZonedDateTime = runCatching { ZonedDateTime.parse(dateTime, formatter) }.getOrElse {
-    if (it is DateTimeParseException) {
-        throw DateTimeParseException("Date Time Format must be 2011-12-03+01:00 but $dateTime", dateTime, it.errorIndex)
+fun parseDateTime(dateTime: String): ZonedDateTime =
+    runCatching { ZonedDateTime.parse(dateTime, formatter) }.getOrElse {
+        if (it is DateTimeParseException) {
+            throw DateTimeParseException(
+                "Date Time Format must be 2011-12-03+01:00 but $dateTime",
+                dateTime,
+                it.errorIndex
+            )
+        }
+        throw it
     }
-    throw it
-}

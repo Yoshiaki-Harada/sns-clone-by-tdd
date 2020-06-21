@@ -1,5 +1,6 @@
 package com.harada
 
+import com.harada.driver.dao.CommentDao
 import com.harada.driver.dao.TweetDao
 import com.harada.driver.dao.UserDao
 import com.harada.gateway.TweetQueryPostgresDB
@@ -22,13 +23,13 @@ object Injector {
     val useCaseModule = Kodein.Module("useCase") {
         bind<IUserCreateUseCase>() with singleton { UserCreateUseCase(instance()) }
         bind<IUserUpdateUseCase>() with singleton { UserUpdateUseCase(instance(), instance()) }
-        bind<ITweetCreateUseCase>() with singleton { TweetCreateUseCase(instance(), instance()) }
+        bind<ITweetCreateUseCase>() with singleton { TweetCreateUseCase(instance(), instance(), instance()) }
         bind<ITweetUpdateUseCase>() with singleton { TweetUpdateUseCase(instance()) }
     }
 
     val gatewayModule = Kodein.Module("gateway") {
         bind<UserWriteStore>() with singleton { UserWritePostgresDB(instance(), instance()) }
-        bind<TweetWriteStore>() with singleton { TweetWritePostgresDB(instance(), instance()) }
+        bind<TweetWriteStore>() with singleton { TweetWritePostgresDB(instance(), instance(), instance()) }
         bind<UserQueryService>() with singleton { UserQueryPostgresDB(instance(), instance()) }
         bind<TweetQueryService>() with singleton { TweetQueryPostgresDB(instance(), instance(), instance()) }
     }
@@ -36,6 +37,7 @@ object Injector {
     val driverModule = Kodein.Module("driver") {
         bind<UserDao.Companion>() with singleton { UserDao }
         bind<TweetDao.Companion>() with singleton { TweetDao }
+        bind<CommentDao.Companion>() with singleton { CommentDao }
     }
 
     val dbModule = Kodein.Module("dataSource") {

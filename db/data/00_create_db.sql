@@ -44,8 +44,8 @@ create table comments
         constraint comments_user_id_fkey
             references users
             on delete cascade,
-    message_id uuid                                not null
-        constraint comments_message_id_fkey
+    tweet_id uuid                                not null
+        constraint comments_tweet_id_fkey
             references tweets
             on delete cascade,
     text       varchar(500)                        not null,
@@ -70,8 +70,8 @@ create table tag_map
         constraint tag_map_tag_id_fkey
             references tags
             on delete cascade,
-    message_id uuid not null
-        constraint tag_map_message_id_fkey
+    tweet_id uuid not null
+        constraint tag_map_tweet_id_fkey
             references tweets
             on delete cascade
 );
