@@ -1,4 +1,4 @@
-package com.harada.domain.model.user
+package com.harada.domainmodel.user
 
 data class Mail(val value: String) {
     public fun isValid() = value.contains("@")

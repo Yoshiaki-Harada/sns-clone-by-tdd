@@ -1,7 +1,7 @@
 package com.harada.domain.model.message
 
-import com.harada.domain.model.tag.Tags
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.tag.Tags
+import com.harada.domainmodel.user.UserId
 
 const val LIMIT_TWEET_LENGTH = 200
 

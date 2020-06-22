@@ -1,4 +1,4 @@
-package com.harada.domain.model.tweet
+package com.harada.domainmodel.tweet
 
 import java.time.ZonedDateTime
 

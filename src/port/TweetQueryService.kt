@@ -1,7 +1,7 @@
 package com.harada.port
 
 import com.harada.domain.model.message.TweetId
-import com.harada.domain.model.tweet.TweetFilter
+import com.harada.domainmodel.tweet.TweetFilter
 import com.harada.viewmodel.TweetInfo
 import com.harada.viewmodel.TweetsInfo
 

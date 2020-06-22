@@ -2,9 +2,9 @@ import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
-import com.harada.domain.model.tag.Tag
-import com.harada.domain.model.tag.Tags
-import com.harada.domain.model.user.*
+import com.harada.domainmodel.tag.Tag
+import com.harada.domainmodel.tag.Tags
+import com.harada.domainmodel.user.*
 import com.harada.formatter
 import com.harada.rest.RequestTweet
 import com.harada.rest.RequestUpdateTweet
@@ -123,7 +123,13 @@ fun createUpdateTweet(
     tags: List<String>? = listOf("tag")
 ) = UpdateTweet(
     text?.let { Text(it) },
-    tags?.let { Tags(it.map { Tag(it) }) }
+    tags?.let {
+        Tags(it.map {
+            Tag(
+                it
+            )
+        })
+    }
 )
 
 fun createRequestUpdateTweet(

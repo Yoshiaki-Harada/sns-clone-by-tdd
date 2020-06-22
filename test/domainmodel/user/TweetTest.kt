@@ -1,4 +1,4 @@
-package domain.model.user
+package domainmodel.user
 
 import com.harada.domain.model.message.LIMIT_TWEET_LENGTH
 import createTweet

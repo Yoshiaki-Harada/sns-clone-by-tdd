@@ -1,4 +1,4 @@
-package com.harada.domain.model.user
+package com.harada.domainmodel.user
 
 
 data class UserFilter(val name: NameFilter? = null, val old: OldFilter? = null)

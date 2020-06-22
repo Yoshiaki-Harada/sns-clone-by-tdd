@@ -3,9 +3,9 @@ package rest
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.harada.domain.model.message.TweetId
-import com.harada.domain.model.tweet.TextFilter
-import com.harada.domain.model.tweet.TimeFilter
-import com.harada.domain.model.tweet.TweetFilter
+import com.harada.domainmodel.tweet.TextFilter
+import com.harada.domainmodel.tweet.TimeFilter
+import com.harada.domainmodel.tweet.TweetFilter
 import com.harada.formatter
 import com.harada.getUUID
 import com.harada.port.TweetQueryService
@@ -182,7 +182,13 @@ class TweetResourceKtTest {
                 body = gson.toJson(createRequestUpdateTweet()),
                 contentType = ContentType.Application.Json,
                 assert = {
-                    verify { query.get(TweetFilter(TextFilter("test"))) }
+                    verify { query.get(
+                        TweetFilter(
+                            TextFilter(
+                                "test"
+                            )
+                        )
+                    ) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )

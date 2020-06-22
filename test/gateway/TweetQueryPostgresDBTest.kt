@@ -1,9 +1,9 @@
 package gateway
 
 import com.harada.domain.model.message.TweetId
-import com.harada.domain.model.tweet.TextFilter
-import com.harada.domain.model.tweet.TimeFilter
-import com.harada.domain.model.tweet.TweetFilter
+import com.harada.domainmodel.tweet.TextFilter
+import com.harada.domainmodel.tweet.TimeFilter
+import com.harada.domainmodel.tweet.TweetFilter
 import com.harada.driver.dao.*
 import com.harada.formatter
 import com.harada.gateway.TweetQueryPostgresDB
@@ -158,7 +158,13 @@ class TweetQueryPostgresDBTest {
         every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
 
         val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        query.get(TweetFilter(text = TextFilter("test")))
+        query.get(
+            TweetFilter(
+                text = TextFilter(
+                    "test"
+                )
+            )
+        )
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),

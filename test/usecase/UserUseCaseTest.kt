@@ -1,9 +1,10 @@
 package usecase
 
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.user.UserId
 import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.port.UserWriteStore
+import com.harada.usecase.AlreadyExistMailException
 import com.harada.usecase.InvalidMailException
 import com.harada.usecase.UserCreateUseCase
 import com.harada.usecase.UserUpdateUseCase
@@ -19,7 +20,10 @@ import kotlin.test.assertEquals
 
 internal class UserUseCaseTest {
     val writeStore = mockk<UserWriteStore>()
-    val query = mockk<UserQueryService>()
+    val query = mockk<UserQueryService>() {
+        every { this@mockk.isFoundByMail(any()) } returns false
+
+    }
 
     @BeforeEach
     fun setUp() {
@@ -33,7 +37,7 @@ internal class UserUseCaseTest {
 
     @Test
     fun `ユーザを登録することができる`() {
-        val useCase = UserCreateUseCase(this.writeStore)
+        val useCase = UserCreateUseCase(this.writeStore, query)
         val id = useCase.execute(createUser())
         verify { this@UserUseCaseTest.writeStore.save(createUser()) }
         assertEquals(id, createUserId())
@@ -41,9 +45,19 @@ internal class UserUseCaseTest {
 
     @Test
     fun `不正なメールアドレスのユーザは登録することができない`() {
-        val useCase = UserCreateUseCase(this.writeStore)
+        val useCase = UserCreateUseCase(this.writeStore, query)
         assertThrows<InvalidMailException> {
             useCase.execute(createUser(mail = "wrong-address"))
+        }
+        verify(exactly = 0) { this@UserUseCaseTest.writeStore.save(createUser()) }
+    }
+
+    @Test
+    fun `既に存在するメールアドレスではユーザを登録することができない`() {
+        every { query.isFoundByMail(any()) } returns true
+        val useCase = UserCreateUseCase(this.writeStore, query)
+        assertThrows<AlreadyExistMailException> {
+            useCase.execute(createUser(mail = "already@gamil.com"))
         }
         verify(exactly = 0) { this@UserUseCaseTest.writeStore.save(createUser()) }
     }
@@ -68,6 +82,16 @@ internal class UserUseCaseTest {
                 createUpdateUser(mail = "wrong-address")
             )
         }
+    }
+
+    @Test
+    fun `既に存在するメールアドレスではユーザを更新することができない`() {
+        every { query.isFoundByMail(any()) } returns true
+        val useCase = UserUpdateUseCase(this.writeStore, query)
+        assertThrows<AlreadyExistMailException> {
+            useCase.execute(createUserId(), createUpdateUser(mail = "already@gmail.com"))
+        }
+        verify(exactly = 0) { this@UserUseCaseTest.writeStore.save(createUser()) }
     }
 
     @Test

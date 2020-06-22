@@ -1,8 +1,8 @@
 package com.harada.gateway
 
-import com.harada.domain.model.user.UpdateUser
-import com.harada.domain.model.user.User
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.user.UpdateUser
+import com.harada.domainmodel.user.User
+import com.harada.domainmodel.user.UserId
 import com.harada.driver.dao.UserDao
 import com.harada.driver.entity.UserEntity
 import com.harada.driver.entity.UserUpdateEntity

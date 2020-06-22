@@ -19,7 +19,7 @@ import org.postgresql.ds.PGSimpleDataSource
 
 object Injector {
     val useCaseModule = Kodein.Module("useCase") {
-        bind<IUserCreateUseCase>() with singleton { UserCreateUseCase(instance()) }
+        bind<IUserCreateUseCase>() with singleton { UserCreateUseCase(instance(),instance()) }
         bind<IUserUpdateUseCase>() with singleton { UserUpdateUseCase(instance(), instance()) }
         bind<ITweetCreateUseCase>() with singleton { TweetCreateUseCase(instance(), instance(), instance()) }
         bind<ITweetUpdateUseCase>() with singleton { TweetUpdateUseCase(instance()) }

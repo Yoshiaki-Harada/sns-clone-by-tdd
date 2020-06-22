@@ -2,10 +2,10 @@ package rest
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.harada.domain.model.user.NameFilter
-import com.harada.domain.model.user.OldFilter
-import com.harada.domain.model.user.UserFilter
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.user.NameFilter
+import com.harada.domainmodel.user.OldFilter
+import com.harada.domainmodel.user.UserFilter
+import com.harada.domainmodel.user.UserId
 import com.harada.port.UserNotFoundException
 import com.harada.port.UserQueryService
 import com.harada.rest.RequestUser
@@ -209,7 +209,13 @@ class UserResourceTest {
                 testKodein = testKodein,
                 path = "/users?name=Tanaka",
                 assert = {
-                    verify { query.get(UserFilter(name = NameFilter("Tanaka"))) }
+                    verify { query.get(
+                        UserFilter(
+                            name = NameFilter(
+                                "Tanaka"
+                            )
+                        )
+                    ) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
@@ -221,7 +227,14 @@ class UserResourceTest {
                 testKodein = testKodein,
                 path = "/users?old_from=20&old_to=25",
                 assert = {
-                    verify { query.get(UserFilter(old = OldFilter(20, 25))) }
+                    verify { query.get(
+                        UserFilter(
+                            old = OldFilter(
+                                20,
+                                25
+                            )
+                        )
+                    ) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )

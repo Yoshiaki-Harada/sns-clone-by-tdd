@@ -1,7 +1,7 @@
 package com.harada.rest
 
 import com.harada.Injector
-import com.harada.domain.model.user.*
+import com.harada.domainmodel.user.*
 import com.harada.getUUID
 import com.harada.port.UserQueryService
 import com.harada.usecase.IUserCreateUseCase
@@ -38,7 +38,13 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
         post("/users") {
             val json = call.receive<RequestUser>()
             val userId =
-                createUseCase.execute(User(UserName(json.name), Mail(json.mail), parseDate(json.birthday)))
+                createUseCase.execute(
+                    User(
+                        UserName(
+                            json.name
+                        ), Mail(json.mail), parseDate(json.birthday)
+                    )
+                )
             call.respond(ResponseUserId(userId.value.toString()))
         }
 

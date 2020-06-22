@@ -1,4 +1,4 @@
-package com.harada.domain.model.tag
+package com.harada.domainmodel.tag
 
 data class Tag(val name: String)
 

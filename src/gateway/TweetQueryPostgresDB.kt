@@ -1,7 +1,7 @@
 package com.harada.gateway
 
 import com.harada.domain.model.message.TweetId
-import com.harada.domain.model.tweet.TweetFilter
+import com.harada.domainmodel.tweet.TweetFilter
 import com.harada.driver.dao.*
 import com.harada.formatter
 import com.harada.port.TweetNotFoundException

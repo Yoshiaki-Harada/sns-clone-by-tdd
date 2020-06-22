@@ -1,8 +1,8 @@
 package gateway
 
-import com.harada.domain.model.user.NameFilter
-import com.harada.domain.model.user.OldFilter
-import com.harada.domain.model.user.UserFilter
+import com.harada.domainmodel.user.NameFilter
+import com.harada.domainmodel.user.OldFilter
+import com.harada.domainmodel.user.UserFilter
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
@@ -80,7 +80,13 @@ internal class UserQueryPostgresDBTest {
     fun `名前に指定した文字列が含まれるユーザー一覧を取得する`() {
         every { dao.get(any<SqlUserFilter>()) } returns listOf(mockUser)
         val query = UserQueryPostgresDB(dao, mockk())
-        query.get(UserFilter(name = NameFilter("Tanaka")))
+        query.get(
+            UserFilter(
+                name = NameFilter(
+                    "Tanaka"
+                )
+            )
+        )
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),
@@ -98,7 +104,14 @@ internal class UserQueryPostgresDBTest {
         every { dao.get(any<SqlUserFilter>()) } returns listOf(mockUser)
 
         val query = UserQueryPostgresDB(dao, mockk())
-        query.get(UserFilter(old = OldFilter(20, 30)))
+        query.get(
+            UserFilter(
+                old = OldFilter(
+                    20,
+                    30
+                )
+            )
+        )
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),

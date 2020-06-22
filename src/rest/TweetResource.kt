@@ -5,12 +5,12 @@ import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
-import com.harada.domain.model.tag.Tag
-import com.harada.domain.model.tag.Tags
-import com.harada.domain.model.tweet.TextFilter
-import com.harada.domain.model.tweet.TimeFilter
-import com.harada.domain.model.tweet.TweetFilter
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.tag.Tag
+import com.harada.domainmodel.tag.Tags
+import com.harada.domainmodel.tweet.TextFilter
+import com.harada.domainmodel.tweet.TimeFilter
+import com.harada.domainmodel.tweet.TweetFilter
+import com.harada.domainmodel.user.UserId
 import com.harada.formatter
 import com.harada.getUUID
 import com.harada.port.TweetQueryService
@@ -50,7 +50,11 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
                 Tweet(
                     UserId(getUUID(json.userId)),
                     Text(json.text),
-                    Tags(json.tags.map { Tag(it) }),
+                    Tags(json.tags.map {
+                        Tag(
+                            it
+                        )
+                    }),
                     json.replyTo?.let { TweetId(getUUID(it)) })
             )
             call.respond(ResponseTweetId(userId.value.toString()))
@@ -65,7 +69,13 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
                 tweetId = TweetId(tweetId),
                 tweet = UpdateTweet(
                     tweet.text?.let { Text(it) },
-                    tweet.tags?.let { Tags(it.map { Tag(it) }) }
+                    tweet.tags?.let {
+                        Tags(it.map {
+                            Tag(
+                                it
+                            )
+                        })
+                    }
                 )
             )
             call.respond(emptyMap<String, String>())
@@ -86,7 +96,12 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
                         to = parseDateTime(to)
                     )
                 } ?: kotlin.run {
-                    return@let TimeFilter(from = ZonedDateTime.parse(params.createdTo, formatter))
+                    return@let TimeFilter(
+                        from = ZonedDateTime.parse(
+                            params.createdTo,
+                            formatter
+                        )
+                    )
                 }
             }
 

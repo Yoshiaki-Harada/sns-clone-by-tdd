@@ -72,6 +72,8 @@ class UserDao(id: EntityID<UUID>) : UUIDEntity(id) {
             }
             return cond?.let { UserDao.find(it).toList() } ?: all().toList()
         }
+
+        fun getByMail(mail: String) = UserDao.find { Users.mail eq mail }.toList()
     }
 
     var name by Users.name

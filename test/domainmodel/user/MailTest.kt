@@ -1,6 +1,6 @@
-package domain.model.user
+package domainmodel.user
 
-import com.harada.domain.model.user.Mail
+import com.harada.domainmodel.user.Mail
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

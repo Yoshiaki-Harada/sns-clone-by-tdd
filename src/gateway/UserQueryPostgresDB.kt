@@ -1,7 +1,7 @@
 package com.harada.gateway
 
-import com.harada.domain.model.user.UserFilter
-import com.harada.domain.model.user.UserId
+import com.harada.domainmodel.user.UserFilter
+import com.harada.domainmodel.user.UserId
 import com.harada.driver.dao.SqlOldFilter
 import com.harada.driver.dao.SqlUserFilter
 import com.harada.driver.dao.UserDao
@@ -43,6 +43,9 @@ class UserQueryPostgresDB(private val dao: UserDao.Companion, private val db: Da
     ) {
         dao.findById(id.value)?.toInfo() ?: throw UserNotFoundException(userId = id.value)
     }
+
+    override fun isFoundByMail(mail: String) = dao.getByMail(mail).isNotEmpty()
+
 
     override fun isNotFound(id: UserId): Boolean =
         transaction(

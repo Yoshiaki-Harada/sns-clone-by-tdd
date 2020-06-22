@@ -1,3 +1,3 @@
-package com.harada.domain.model.user
+package com.harada.domainmodel.user
 
 data class UserName(val value: String)
