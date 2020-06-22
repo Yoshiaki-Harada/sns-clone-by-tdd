@@ -128,7 +128,7 @@ fun createUpdateTweet(
 
 fun createRequestUpdateTweet(
     text: String = TEST_UPDATE_TWEET,
-    tags: List<String>? = listOf("tags")
+    tags: List<String>? = listOf("tag")
 ) = RequestUpdateTweet(
     text = text,
     tags = tags

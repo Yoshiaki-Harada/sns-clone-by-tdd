@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
-import kotlin.test.assertEquals
 
 class TweetWritePostgresDBTest {
     private val tweetDao = mockk<TweetDao.Companion>()
@@ -44,7 +43,7 @@ class TweetWritePostgresDBTest {
         every { tagDao.findOrCreate("tag2") } returns UUID.fromString("a5f39e50-e009-4ca3-92c5-e8c499ab693d")
         every { tagTweetMapDao.create(any(), any(), any()) } just Runs
         val db = TweetWritePostgresDB(tweetDao, mockk(), mockk(), tagDao, tagTweetMapDao, mockk())
-        val tweetId = db.save(createTweet(tags = listOf("tag1", "tag2")))
+        db.save(createTweet(tags = listOf("tag1", "tag2")))
 
         verify { transaction(statement = captureLambda<Transaction.() -> Any>(), db = any()) }
         verify { tagDao.findOrCreate("tag1") }
@@ -52,7 +51,6 @@ class TweetWritePostgresDBTest {
         verify { tagDao.findOrCreate("tag2") }
         verify { tagTweetMapDao.create(any(), UUID.fromString("a5f39e50-e009-4ca3-92c5-e8c499ab693d"), any()) }
         verify { tweetDao.create(any()) }
-        assertEquals(createTweetId(), tweetId)
     }
 
     @Test
@@ -61,7 +59,7 @@ class TweetWritePostgresDBTest {
         every { tagDao.findOrCreate(any()) } returns UUID.fromString("996561dc-a2e5-4868-963e-3ec70cd2c14f")
         every { tagCommentMapDao.create(any(), any(), any()) } just Runs
         val db = TweetWritePostgresDB(mockk(), commentDao, mockk(), tagDao, mockk(), tagCommentMapDao)
-        val tweetId = db.save(
+        db.save(
             createTweet(
                 replyTo = UUID.fromString("7865abd1-886d-467d-ac59-7df75d010473"),
                 tags = listOf("tag")
@@ -72,7 +70,6 @@ class TweetWritePostgresDBTest {
         verify { tagDao.findOrCreate("tag") }
         verify { tagCommentMapDao.create(any(), UUID.fromString("996561dc-a2e5-4868-963e-3ec70cd2c14f"), any()) }
         verify { commentDao.create(any()) }
-        assertEquals(tweetId, createTweetId())
     }
 
     @Test

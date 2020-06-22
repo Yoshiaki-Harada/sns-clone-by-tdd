@@ -59,7 +59,7 @@ class TweetQueryPostgresDB(
                 )
             }
         )).let { tweetDaoList ->
-            tweetDaoList.map { tweet ->
+            tweetDaoList.sortedByDescending { it.createdAt }.map { tweet ->
                 val user = userDao.findById(tweet.userId.value) ?: throw UserNotFoundException(
                     tweet.id.value
                 )

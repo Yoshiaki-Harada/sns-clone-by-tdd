@@ -83,7 +83,7 @@ class TweetResourceKtTest {
         }
 
         @Test
-        fun `不正なフォーマットのメッセージを作成しようとするとStatusCode 400が返却される`() {
+        fun `不正なフォーマットのツイートを作成しようとするとStatusCode 400が返却される`() {
             invokeWithTestApplication(
                 moduleFunction = {
                     tweetModuleWithDepth(testKodein)
@@ -110,23 +110,6 @@ class TweetResourceKtTest {
 
         @Test
         fun `メッセージを更新する`() {
-            invokeWithTestApplication(
-                moduleFunction = {
-                    tweetModuleWithDepth(testKodein)
-                },
-                path = "/tweets/${createTweetId().value}",
-                method = HttpMethod.Put,
-                body = gson.toJson(createRequestUpdateTweet()),
-                contentType = ContentType.Application.Json,
-                assert = {
-                    verify { useCase.execute(createTweetId(), createUpdateTweet()) }
-                    assertEquals(HttpStatusCode.OK, response.status())
-                }
-            )
-        }
-
-        // TODO
-        fun `存在しないTweetを更新することはできない`() {
             invokeWithTestApplication(
                 moduleFunction = {
                     tweetModuleWithDepth(testKodein)
