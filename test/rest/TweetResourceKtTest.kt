@@ -48,7 +48,7 @@ class TweetResourceKtTest {
         }
 
         @Test
-        fun `メッセージを作成する`() {
+        fun `Tweetを作成する`() {
             invokeWithTestApplication(
                 moduleFunction = {
                     tweetModuleWithDepth(testKodein)

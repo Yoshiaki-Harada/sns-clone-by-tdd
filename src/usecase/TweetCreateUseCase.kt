@@ -20,7 +20,7 @@ class TweetCreateUseCase(
     ITweetCreateUseCase {
     override fun execute(tweet: Tweet): TweetId {
         if (userQuery.isNotFound(tweet.userId)) throw UserNotFoundException(tweet.userId.value)
-        if (tweet.isOverLimitTweetLength()) throw OverTweetLengthException(tweet.length())
+        if (tweet.text.isOverCharacterLimit()) throw OverTweetLengthException(tweet.length())
         tweet.replyTo?.let {
             if (tweetQuery.isNotFound(it)) throw TweetNotFoundException(it.value)
         }

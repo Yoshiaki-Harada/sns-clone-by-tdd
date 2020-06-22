@@ -2,16 +2,15 @@ import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
+import com.harada.domain.model.tag.Tag
+import com.harada.domain.model.tag.Tags
 import com.harada.domain.model.user.*
 import com.harada.formatter
 import com.harada.rest.RequestTweet
 import com.harada.rest.RequestUpdateTweet
 import com.harada.rest.RequestUpdateUser
 import com.harada.rest.RequestUser
-import com.harada.viewmodel.TweetInfo
-import com.harada.viewmodel.TweetsInfo
-import com.harada.viewmodel.UserInfo
-import com.harada.viewmodel.UsersInfo
+import com.harada.viewmodel.*
 import java.text.SimpleDateFormat
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -99,39 +98,48 @@ fun createTweetId(
 fun createRequestTweet(
     userId: UUID = createUserId().value,
     text: String = TEST_TWEET,
-    replyTo: String? = null
+    replyTo: String? = null,
+    tags: List<String> = listOf("tag")
 ) = RequestTweet(
     userId = userId.toString(),
     text = text,
-    replyTo = replyTo
+    replyTo = replyTo,
+    tags = tags
 )
 
 fun createTweet(
     userId: UUID = createUserId().value,
     text: String = TEST_TWEET,
+    tags: List<String> = listOf("tag"),
     replyTo: UUID? = null
 ) = Tweet(
     UserId(userId),
     Text(text),
-    replyTo?.let { TweetId(it) }
-)
+    Tags(tags.map { Tag(it) }),
+    replyTo?.let { TweetId(it) })
 
 fun createUpdateTweet(
-    text: String? = TEST_UPDATE_TWEET
+    text: String? = TEST_UPDATE_TWEET,
+    tags: List<String>? = listOf("tag")
 ) = UpdateTweet(
-    text?.let { Text(it) }
+    text?.let { Text(it) },
+    tags?.let { Tags(it.map { Tag(it) }) }
 )
 
 fun createRequestUpdateTweet(
-    text: String = TEST_UPDATE_TWEET
+    text: String = TEST_UPDATE_TWEET,
+    tags: List<String>? = listOf("tags")
 ) = RequestUpdateTweet(
-    text = text
+    text = text,
+    tags = tags
 )
 
 fun createTweetInfo(
     id: UUID = createTweetId().value,
     text: String = "",
+    tags: List<String> = listOf("tag"),
     userName: String = "Tanaka Taro",
+    replies: List<ReplyInfo> = emptyList(),
     createdAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC")),
     updatedAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC"))
 ) = TweetInfo(
@@ -139,18 +147,37 @@ fun createTweetInfo(
     text = text,
     userName = userName,
     createdAt = formatter.format(createdAt),
-    updatedAt = formatter.format(updatedAt)
+    updatedAt = formatter.format(updatedAt),
+    tags = tags,
+    replies = replies
 )
+
+fun createReplyInfo(
+    id: UUID = createTweetId().value,
+    text: String = "",
+    tags: List<String> = listOf("tag"),
+    userName: String = "Tanaka Taro",
+    createdAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC")),
+    updatedAt: ZonedDateTime = ZonedDateTime.of(2020, 1, 1, 1, 0, 0, 0, ZoneId.of("UTC"))
+) = ReplyInfo(
+    id = id.toString(),
+    text = text,
+    userName = userName,
+    createdAt = formatter.format(createdAt),
+    updatedAt = formatter.format(updatedAt),
+    tags = tags
+)
+
 
 fun createTweetsInfo() = TweetsInfo(
     listOf(
         createTweetInfo(),
         createTweetInfo(
-            UUID.fromString("6207005e-d8ab-47ec-b483-189d7cbd726f"),
-            "text 2",
-            "Tnaka Jiro",
-            ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC")),
-            ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC"))
+            id = UUID.fromString("6207005e-d8ab-47ec-b483-189d7cbd726f"),
+            text = "text 2",
+            userName = "Tnaka Jiro",
+            createdAt = ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC")),
+            updatedAt = ZonedDateTime.of(2020, 1, 1, 2, 0, 0, 0, ZoneId.of("UTC"))
         )
     )
 )

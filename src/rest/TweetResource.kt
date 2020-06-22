@@ -5,6 +5,8 @@ import com.harada.domain.model.message.Text
 import com.harada.domain.model.message.Tweet
 import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
+import com.harada.domain.model.tag.Tag
+import com.harada.domain.model.tag.Tags
 import com.harada.domain.model.tweet.TextFilter
 import com.harada.domain.model.tweet.TimeFilter
 import com.harada.domain.model.tweet.TweetFilter
@@ -45,7 +47,11 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
         post("/tweets") {
             val json = call.receive<RequestTweet>()
             val userId = createUseCase.execute(
-                Tweet(UserId(getUUID(json.userId)), Text(json.text), json.replyTo?.let { TweetId(getUUID(it)) })
+                Tweet(
+                    UserId(getUUID(json.userId)),
+                    Text(json.text),
+                    Tags(json.tags.map { Tag(it) }),
+                    json.replyTo?.let { TweetId(getUUID(it)) })
             )
             call.respond(ResponseTweetId(userId.value.toString()))
         }
@@ -58,7 +64,8 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
             updateUseCase.execute(
                 tweetId = TweetId(tweetId),
                 tweet = UpdateTweet(
-                    tweet.text?.let { Text(it) }
+                    tweet.text?.let { Text(it) },
+                    tweet.tags?.let { Tags(it.map { Tag(it) }) }
                 )
             )
             call.respond(emptyMap<String, String>())
@@ -95,12 +102,13 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
     }
 }
 
-data class RequestUpdateTweet(val text: String?)
+data class RequestUpdateTweet(val text: String?, val tags: List<String>?)
 
 data class RequestTweet(
     val userId: String,
     val text: String,
-    val replyTo: String? = null
+    val replyTo: String?,
+    val tags: List<String>
 )
 
 data class ResponseTweetId(

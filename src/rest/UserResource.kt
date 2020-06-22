@@ -41,12 +41,14 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
                 createUseCase.execute(User(UserName(json.name), Mail(json.mail), parseDate(json.birthday)))
             call.respond(ResponseUserId(userId.value.toString()))
         }
+
         @Location("/users/{id}")
         data class GetUserLocationById(val id: String)
         get<GetUserLocationById> { params ->
             val userId = getUUID(params.id)
             call.respond(userQuery.get(UserId(userId)))
         }
+
         @Location("/users")
         data class GetUsersLocation(val name: String? = null, val old_from: Int? = null, val old_to: Int? = null)
         get<GetUsersLocation> { paramas ->
@@ -66,6 +68,7 @@ fun Application.userModuleWithDepth(kodein: Kodein) {
             )
             call.respond(users)
         }
+
         @Location("/users/{id}")
         data class PutUserLocation(val id: String)
         put<PutUserLocation> { params ->

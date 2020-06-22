@@ -37,6 +37,7 @@ class CommentDao(id: EntityID<UUID>) : UUIDEntity(id) {
             }
         }
 
+        fun findByTweetId(tweetId: UUID) = CommentDao.find { Comments.tweetId eq tweetId }.toList()
     }
 
     var tweetId by Comments.tweetId
