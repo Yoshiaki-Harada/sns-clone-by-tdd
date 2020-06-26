@@ -18,4 +18,4 @@ data class ReplyInfo(
     val updatedAt: String,
     val tags: List<String>
 )
-data class TweetsInfo(val tweets: List<TweetInfo>)
+data class TimeLine(val tweets: List<TweetInfo>)

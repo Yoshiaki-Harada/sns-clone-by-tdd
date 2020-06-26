@@ -7,13 +7,14 @@ import com.harada.domainmodel.tweet.TweetFilter
 import com.harada.driver.dao.*
 import com.harada.formatter
 import com.harada.gateway.TweetQueryPostgresDB
-import com.harada.viewmodel.TweetsInfo
+import com.harada.viewmodel.TimeLine
 import createReplyInfo
 import createTweetId
 import createTweetInfo
 import createUserInfo
 import io.mockk.*
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
@@ -95,7 +96,7 @@ class TweetQueryPostgresDBTest {
         every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
 
         val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        val result = query.get(TweetId(UUID.fromString(createTweetInfo().id)))
+        val result = query.getTweet(TweetId(UUID.fromString(createTweetInfo().id)))
 
         verify {
             transaction(
@@ -136,7 +137,7 @@ class TweetQueryPostgresDBTest {
         every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
 
         val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        val result = query.get(TweetFilter())
+        val result = query.getTimeLine(TweetFilter())
         verify {
             transaction(
                 statement = captureLambda<Transaction.() -> Any>(),
@@ -145,9 +146,28 @@ class TweetQueryPostgresDBTest {
                 repetitionAttempts = 2
             )
         }
-        assertEquals(result, TweetsInfo(listOf(createTweetInfo(replies = listOf(comment)))))
+        assertEquals(result, TimeLine(listOf(createTweetInfo(replies = listOf(comment)))))
     }
 
+
+    @Test
+    fun `Tweetをタグで検索できる`() {
+        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
+        every { userDao.findById(any<UUID>()) } returns mockUser1
+        every { commentDao.findByTweetId(any()) } returns listOf(mockComment)
+        every { tagDao.findTagNamesByTweetId(any()) } returns listOf("tag")
+        every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
+
+        val queryDb = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
+        val query = queryDb.getTweetQuery(
+            TweetFilter(
+                text = TextFilter(
+                    "test"
+                )
+            )
+        )
+        assertEquals(query, mockk())
+    }
 
     @Test
     fun `Tweetをテキストで検索できる`() {
@@ -158,7 +178,7 @@ class TweetQueryPostgresDBTest {
         every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
 
         val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        query.get(
+        query.getTimeLine(
             TweetFilter(
                 text = TextFilter(
                     "test"
@@ -187,7 +207,7 @@ class TweetQueryPostgresDBTest {
         every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
 
         val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        query.get(
+        query.getTimeLine(
             TweetFilter(
                 createTime = TimeFilter(
                     from = ZonedDateTime.parse(

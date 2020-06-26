@@ -7,6 +7,7 @@ import com.harada.domain.model.message.TweetId
 import com.harada.domain.model.message.UpdateTweet
 import com.harada.domainmodel.tag.Tag
 import com.harada.domainmodel.tag.Tags
+import com.harada.domainmodel.tweet.TagFilter
 import com.harada.domainmodel.tweet.TextFilter
 import com.harada.domainmodel.tweet.TimeFilter
 import com.harada.domainmodel.tweet.TweetFilter
@@ -85,7 +86,8 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
         data class GetTweetsLocation(
             val text: String? = null,
             val createdFrom: String? = null,
-            val createdTo: String? = null
+            val createdTo: String? = null,
+            val tags: String? = null
         )
         get<GetTweetsLocation> { params ->
             val textFilter = params.text?.let { TextFilter(it) }
@@ -104,15 +106,18 @@ fun Application.tweetModuleWithDepth(kodein: Kodein) {
                     )
                 }
             }
+            val tagFilter = params.tags?.split(",")?.let {
+                TagFilter(it)
+            }
 
-            call.respond(query.get(TweetFilter(textFilter, timeFilter)))
+            call.respond(query.getTimeLine(TweetFilter(textFilter, timeFilter,tagFilter)))
         }
 
         @Location("/tweets/{id}")
         data class GetTweetLocation(val id: String)
         get<GetTweetLocation> { params ->
             val tweetId = getUUID(params.id)
-            call.respond(query.get(TweetId(tweetId)))
+            call.respond(query.getTweet(TweetId(tweetId)))
         }
     }
 }

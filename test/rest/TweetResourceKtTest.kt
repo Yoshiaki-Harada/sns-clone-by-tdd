@@ -3,6 +3,7 @@ package rest
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.harada.domain.model.message.TweetId
+import com.harada.domainmodel.tweet.TagFilter
 import com.harada.domainmodel.tweet.TextFilter
 import com.harada.domainmodel.tweet.TimeFilter
 import com.harada.domainmodel.tweet.TweetFilter
@@ -129,8 +130,8 @@ class TweetResourceKtTest {
     @Nested
     inner class GetTweets {
         private val query = mockk<TweetQueryService>() {
-            every { this@mockk.get(any<TweetFilter>()) } returns createTweetsInfo()
-            every { this@mockk.get(any<TweetId>()) } returns createTweetInfo()
+            every { this@mockk.getTimeLine(any<TweetFilter>()) } returns createTweetsInfo()
+            every { this@mockk.getTweet(any<TweetId>()) } returns createTweetInfo()
         }
         private val testKodein = Kodein {
             bind<TweetQueryService>() with singleton { query }
@@ -148,7 +149,7 @@ class TweetResourceKtTest {
                 body = gson.toJson(createRequestUpdateTweet()),
                 contentType = ContentType.Application.Json,
                 assert = {
-                    verify { query.get(TweetId(UUID.fromString(id))) }
+                    verify { query.getTweet(TweetId(UUID.fromString(id))) }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
@@ -165,7 +166,30 @@ class TweetResourceKtTest {
                 body = gson.toJson(createRequestUpdateTweet()),
                 contentType = ContentType.Application.Json,
                 assert = {
-                    verify { query.get(TweetFilter()) }
+                    verify { query.getTimeLine(TweetFilter()) }
+                    assertEquals(HttpStatusCode.OK, response.status())
+                }
+            )
+        }
+
+        @Test
+        fun `Tweetをタグで検索できる`() {
+            invokeWithTestApplication(
+                moduleFunction = {
+                    tweetModuleWithDepth(testKodein)
+                },
+                path = "/tweets?tags=a,b",
+                method = HttpMethod.Get,
+                body = gson.toJson(createRequestUpdateTweet()),
+                contentType = ContentType.Application.Json,
+                assert = {
+                    verify {
+                        query.getTimeLine(
+                            TweetFilter(
+                                tags = TagFilter(listOf("a", "b"))
+                            )
+                        )
+                    }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
@@ -182,13 +206,15 @@ class TweetResourceKtTest {
                 body = gson.toJson(createRequestUpdateTweet()),
                 contentType = ContentType.Application.Json,
                 assert = {
-                    verify { query.get(
-                        TweetFilter(
-                            TextFilter(
-                                "test"
+                    verify {
+                        query.getTimeLine(
+                            TweetFilter(
+                                TextFilter(
+                                    "test"
+                                )
                             )
                         )
-                    ) }
+                    }
                     assertEquals(HttpStatusCode.OK, response.status())
                 }
             )
@@ -206,7 +232,7 @@ class TweetResourceKtTest {
                 contentType = ContentType.Application.Json,
                 assert = {
                     verify {
-                        query.get(
+                        query.getTimeLine(
                             TweetFilter(
                                 createTime = TimeFilter(
                                     ZonedDateTime.parse("2020-06-15T10:15:30+09:00", formatter),
