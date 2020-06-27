@@ -22,17 +22,16 @@ internal class UserUseCaseTest {
     val writeStore = mockk<UserWriteStore>()
     val query = mockk<UserQueryService>() {
         every { this@mockk.isFoundByMail(any()) } returns false
-
     }
 
     @BeforeEach
     fun setUp() {
         clearMocks(query)
-
         every { writeStore.save(any()) } returns createUserId()
         every { writeStore.update(any(), any()) } just Runs
         every { query.get(any<UserId>()) } returns createUserInfo()
         every { query.isNotFound(any<UserId>()) } returns false
+        every { query.isFoundByMail(any()) } returns false
     }
 
     @Test

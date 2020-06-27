@@ -62,17 +62,21 @@ class TweetDao(id: EntityID<UUID>) : UUIDEntity(id) {
 
         fun getTweetQuery(filter: SqlTweetFilter): Query {
             if (filter.tagFilter == null)
-                return createTweetFilterCondition(filter.textFilter, filter.createFilter)?.let { Tweets.select { it } }
+                return TweetDao.createTweetFilterCondition(filter.textFilter, filter.createFilter)
+                    ?.let { Tweets.select { it } }
                     ?: kotlin.run { return@run Tweets.selectAll() }
 
             val tagTable = Tags.alias("t")
             val mapTable = TagTweetMap.alias("m")
-            val query = Tweets.innerJoin(mapTable, { Tweets.id }, { mapTable[TagTweetMap.tweetId] })
+            val query = Tweets
+                .innerJoin(mapTable, { Tweets.id }, { mapTable[TagTweetMap.tweetId] })
                 .innerJoin(tagTable, { tagTable[Tags.id] }, { mapTable[TagTweetMap.tagId] })
+                .slice(Tweets.columns)
                 .select { tagTable[Tags.name] inList filter.tagFilter.tags }.groupBy(Tweets.id)
                 .having { Tweets.id.count() eq filter.tagFilter.tags.size.toLong() }
 
-            return createTweetFilterCondition(filter.textFilter, filter.createFilter)?.let { query.andWhere { it } }
+            return TweetDao.createTweetFilterCondition(filter.textFilter, filter.createFilter)
+                ?.let { query.andWhere { it } }
                 ?: kotlin.run { return@run query }
         }
 

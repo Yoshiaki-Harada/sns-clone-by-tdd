@@ -175,7 +175,7 @@ fun createReplyInfo(
 )
 
 
-fun createTweetsInfo() = TimeLine(
+fun createTimeLine() = TimeLine(
     listOf(
         createTweetInfo(),
         createTweetInfo(

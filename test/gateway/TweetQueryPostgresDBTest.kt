@@ -1,6 +1,7 @@
 package gateway
 
 import com.harada.domain.model.message.TweetId
+import com.harada.domainmodel.tweet.TagFilter
 import com.harada.domainmodel.tweet.TextFilter
 import com.harada.domainmodel.tweet.TimeFilter
 import com.harada.domainmodel.tweet.TweetFilter
@@ -9,12 +10,12 @@ import com.harada.formatter
 import com.harada.gateway.TweetQueryPostgresDB
 import com.harada.viewmodel.TimeLine
 import createReplyInfo
+import createTimeLine
 import createTweetId
 import createTweetInfo
 import createUserInfo
 import io.mockk.*
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
@@ -67,6 +68,7 @@ class TweetQueryPostgresDBTest {
 
     @BeforeEach
     fun setUp() {
+        clearMocks(tweetDao, userDao)
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
         mockkStatic("org.jetbrains.exposed.sql.transactions.ThreadLocalTransactionManagerKt")
         every {
@@ -78,7 +80,6 @@ class TweetQueryPostgresDBTest {
         } answers { call ->
             lambda<Transaction.() -> Any>().invoke(mockk())
         }
-        clearMocks(tweetDao, userDao)
     }
 
     @AfterEach
@@ -129,14 +130,10 @@ class TweetQueryPostgresDBTest {
 
     @Test
     fun `Tweetの一覧を取得できる`() {
-        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
-        every { userDao.findById(UUID.fromString("11ad470d-f785-46b5-a6cf-cd7d75fbc114")) } returns mockUser1
-        every { userDao.findById(UUID.fromString("6207005e-d8ab-47ec-b483-189d7cbd726f")) } returns mockUser2
-        every { commentDao.findByTweetId(any()) } returns listOf(mockComment)
-        every { tagDao.findTagNamesByTweetId(any()) } returns listOf("tag")
-        every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
+        every { tweetDao.getTweetQuery(any()) } returns mockk()
+        val query = spyk(TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao))
+        every { query.queryToTimeLine(any()) } returns TimeLine(listOf(createTweetInfo(replies = listOf(comment))))
 
-        val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
         val result = query.getTimeLine(TweetFilter())
         verify {
             transaction(
@@ -147,37 +144,42 @@ class TweetQueryPostgresDBTest {
             )
         }
         assertEquals(result, TimeLine(listOf(createTweetInfo(replies = listOf(comment)))))
+        clearMocks(query)
     }
 
 
     @Test
     fun `Tweetをタグで検索できる`() {
-        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
-        every { userDao.findById(any<UUID>()) } returns mockUser1
-        every { commentDao.findByTweetId(any()) } returns listOf(mockComment)
-        every { tagDao.findTagNamesByTweetId(any()) } returns listOf("tag")
-        every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
-
-        val queryDb = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
-        val query = queryDb.getTweetQuery(
+        every { tweetDao.getTweetQuery(any()) } returns mockk()
+        val query = spyk(TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao))
+        every { query.queryToTimeLine(any()) } returns createTimeLine()
+        query.getTimeLine(
             TweetFilter(
-                text = TextFilter(
-                    "test"
+                tags = TagFilter(
+                    listOf("tag")
                 )
             )
         )
-        assertEquals(query, mockk())
+        verify {
+            transaction(
+                statement = captureLambda<Transaction.() -> Any>(),
+                db = any(),
+                transactionIsolation = Connection.TRANSACTION_READ_UNCOMMITTED,
+                repetitionAttempts = 2
+            )
+        }
+        verify {
+            tweetDao.getTweetQuery(SqlTweetFilter(tagFilter = SqlTagFilter(listOf("tag"))))
+        }
+        clearMocks(query)
     }
 
     @Test
     fun `Tweetをテキストで検索できる`() {
-        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
-        every { userDao.findById(any<UUID>()) } returns mockUser1
-        every { commentDao.findByTweetId(any()) } returns listOf(mockComment)
-        every { tagDao.findTagNamesByTweetId(any()) } returns listOf("tag")
-        every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
+        every { tweetDao.getTweetQuery(any()) } returns mockk()
+        val query = spyk(TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao))
+        every { query.queryToTimeLine(any()) } returns createTimeLine()
 
-        val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
         query.getTimeLine(
             TweetFilter(
                 text = TextFilter(
@@ -194,19 +196,17 @@ class TweetQueryPostgresDBTest {
             )
         }
         verify {
-            tweetDao.get(SqlTweetFilter(textFilter = "test"))
+            tweetDao.getTweetQuery(SqlTweetFilter(textFilter = "test"))
         }
+        clearMocks(query)
     }
 
     @Test
     fun `Tweetを作成時間で検索できる`() {
-        every { tweetDao.get(any<SqlTweetFilter>()) } returns listOf(mockTweet)
-        every { userDao.findById(any<UUID>()) } returns mockUser1
-        every { commentDao.findByTweetId(any()) } returns listOf(mockComment)
-        every { tagDao.findTagNamesByTweetId(any()) } returns listOf("tag")
-        every { tagDao.findTagNamesByCommentId(any()) } returns listOf("tag")
+        every { tweetDao.getTweetQuery(any()) } returns mockk()
+        val query = spyk(TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao))
+        every { query.queryToTimeLine(any()) } returns createTimeLine()
 
-        val query = TweetQueryPostgresDB(tweetDao, userDao, commentDao, mockk(), tagDao)
         query.getTimeLine(
             TweetFilter(
                 createTime = TimeFilter(
@@ -229,7 +229,7 @@ class TweetQueryPostgresDBTest {
             )
         }
         verify {
-            tweetDao.get(
+            tweetDao.getTweetQuery(
                 SqlTweetFilter(
                     createFilter = SqlDateTimeFilter(
                         from = LocalDateTime.of(2020, 6, 17, 10, 15, 30), to = LocalDateTime.of(2020, 6, 18, 10, 15, 30)
@@ -237,5 +237,6 @@ class TweetQueryPostgresDBTest {
                 )
             )
         }
+        clearMocks(query)
     }
 }

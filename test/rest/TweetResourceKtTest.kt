@@ -19,7 +19,7 @@ import createRequestUpdateTweet
 import createTweet
 import createTweetId
 import createTweetInfo
-import createTweetsInfo
+import createTimeLine
 import createUpdateTweet
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -130,7 +130,7 @@ class TweetResourceKtTest {
     @Nested
     inner class GetTweets {
         private val query = mockk<TweetQueryService>() {
-            every { this@mockk.getTimeLine(any<TweetFilter>()) } returns createTweetsInfo()
+            every { this@mockk.getTimeLine(any<TweetFilter>()) } returns createTimeLine()
             every { this@mockk.getTweet(any<TweetId>()) } returns createTweetInfo()
         }
         private val testKodein = Kodein {
